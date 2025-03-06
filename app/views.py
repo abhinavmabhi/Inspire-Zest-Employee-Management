@@ -1,0 +1,362 @@
+from django.shortcuts import render, redirect
+from django.views.generic import View
+from django.core.mail import send_mail
+from .models import CustomUser, DailyReport, SalaryCalendar, Task
+from .forms import SignupForm, LoginForm,ForgotPasswordForm, ResetPasswordForm, Manager_Task_Assign_To_Employee_form,Manager_add_salary_form,Employee_leave_form
+from django.contrib.auth import authenticate, login, logout
+from django.contrib import messages
+
+
+# Create your views here.
+
+def send_email_otp(user):
+    user.generate_otp()
+    subject = "Kindly Verify your Email Address"
+    message = f"otp for your Account verification is {user.otp}"
+    from_email = "abhinavabhi192018@gmail.com"
+    recipient_list = [user.email]
+    send_mail(subject,message,from_email,recipient_list)
+
+
+
+
+# view for register/otp-verification/login/logout 
+
+
+def SignupView(request):
+    if request.method == 'POST':
+        form = SignupForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.is_active = False
+            user.is_verified = False
+            user.save()
+            send_email_otp(user)
+            return redirect('verify')
+    else:
+        form = SignupForm()
+    return render(request, 'signup.html', {'form': form})
+
+
+def Verify_otp_View(request):
+    if request.method == 'POST':
+        otp = request.POST.get('otp')
+        user = CustomUser.objects.get(otp=otp)
+        if otp == user.otp:
+            user.is_active = True
+            user.is_verified = True
+            user.otp = None
+            user.save()
+            return redirect('login')
+    return render(request, 'verify.html')
+
+
+def LoginView(request):
+    if request.method == 'POST':
+        form_instance = LoginForm(request.POST)
+        if form_instance.is_valid():
+            username = form_instance.cleaned_data.get('username')
+            password = form_instance.cleaned_data.get('password')
+            user = authenticate(username=username, password=password)
+            if user is not None:
+                login(request, user)
+                if user.is_superuser:
+                    print("Redirecting superuser to assign-task-employee")
+                    return redirect('assign-task-employee')
+                else:
+                    return redirect('employee-tasks')
+    else:
+        form_instance = LoginForm()
+    return render(request, 'login.html', {'form': form_instance})
+
+
+def LOgoutView(request):
+    logout(request)
+    return redirect('login')
+
+
+
+
+
+# reset password 
+
+def Forgot_password_View(request):
+    if request.method == 'POST':
+        form = ForgotPasswordForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            try:
+                user = CustomUser.objects.get(email=email)
+                # Generate and send OTP
+                send_email_otp(user)
+                request.session['reset_email'] = email
+                return redirect('verify-reset-otp')
+            except CustomUser.DoesNotExist:
+                messages.error(request, "No account found with this email address.")
+    else:
+        form = ForgotPasswordForm()
+    return render(request, 'forgot_password.html', {'form': form})
+
+def Verify_reset_otp_View(request):
+    if 'reset_email' not in request.session:
+        return redirect('forgot-password')
+        
+    if request.method == 'POST':
+        otp = request.POST.get('otp')
+        try:
+            user = CustomUser.objects.get(email=request.session['reset_email'])
+            if otp == user.otp:
+                request.session['reset_user_id'] = user.id
+                user.otp = None
+                user.save()
+                return redirect('reset-password')
+            else:
+                messages.error(request, "Invalid OTP")
+        except CustomUser.DoesNotExist:
+            messages.error(request, "User not found")
+    return render(request, 'verify_reset_otp.html')
+
+def reset_password_View(request):
+    if 'reset_user_id' not in request.session:
+        return redirect('forgot-password')
+        
+    if request.method == 'POST':
+        form = ResetPasswordForm(request.POST)
+        if form.is_valid():
+            user = CustomUser.objects.get(id=request.session['reset_user_id'])
+            user.set_password(form.cleaned_data['password'])
+            user.save()
+            
+            # Clear session data
+            del request.session['reset_email']
+            del request.session['reset_user_id']
+            
+            messages.success(request, "Password reset successfully!")
+            return redirect('login')
+    else:
+        form = ResetPasswordForm()
+    return render(request, 'reset_password.html', {'form': form})
+
+
+
+
+
+# manager 
+
+
+
+
+def assign_task_to_employee(request):
+    if not request.user.is_superuser:
+        return redirect('employee-dashboard')  # Only managers can assign tasks
+        
+    if request.method == 'POST':
+        form = Manager_Task_Assign_To_Employee_form(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('manager-task-list')  # Redirect to task list after successful assignment
+    else:
+        form = Manager_Task_Assign_To_Employee_form()
+    
+    return render(request, 'Manager_assign_task.html', {'form': form})
+
+
+
+
+
+
+from django.utils import timezone
+
+def Manager_assigned_task_list(request):
+    
+    current_date = timezone.now().date()
+    tasks = Task.objects.filter(time_line__gte=current_date).order_by('time_line')
+    return render(request, 'Manager_assigned_task_list.html', {'tasks': tasks})
+
+
+
+ 
+def Manager_list_all_employees(request):
+    if not request.user.is_superuser:
+        return redirect('employee-dashboard')
+        
+    employees = CustomUser.objects.filter(is_superuser=False)
+    
+    # Get current salary for each employee
+    for employee in employees:
+        employee.current_salary = SalaryCalendar.objects.filter(employee=employee).last()
+    
+    return render(request, 'Manager_list_all_employees.html', {'employees': employees})
+
+
+
+def Manager_employee_details(request, pk):
+    if not request.user.is_superuser:
+        return redirect('employee-dashboard')
+        
+    try:
+        employee = CustomUser.objects.get(pk=pk)
+        
+        if request.method == 'POST':
+            salary_form = Manager_add_salary_form(request.POST)
+            if salary_form.is_valid():
+                salary = salary_form.save(commit=False)
+                salary.employee = employee
+                salary.leave_days = timezone.now().date()  # Set default date
+                
+                try:
+                    salary.save()
+                    messages.success(request, f"Salary added successfully for {employee.username}")
+                except Exception as e:
+                    messages.error(request, f"Error saving salary: {str(e)}")
+                
+                return redirect('manager-employee-details', pk=pk)
+        else:
+            salary_form = Manager_add_salary_form()
+        
+        # Get current salary if exists
+        current_salary = SalaryCalendar.objects.filter(employee=employee).last()
+        
+        context = {
+            'employee': employee,
+            'salary_form': salary_form,
+            'current_salary': current_salary
+        }
+        
+        return render(request, 'Manager_employee_details.html', context)
+        
+    except CustomUser.DoesNotExist:
+        messages.error(request, "Employee not found")
+        return redirect('manager-employee-list')
+
+
+
+
+def Manager_delete_employee(request,pk):
+    if not request.user.is_superuser:
+        return redirect("employee-dashboard")
+    CustomUser.objects.get(pk=pk).delete()
+    return redirect('manager-employee-list')
+
+
+# employee 
+
+def Employee_task_list_view(request):
+
+    if request.user.is_superuser:
+        return redirect('manager-task-list')
+    
+    if request.method == 'POST':
+        task_id = request.POST.get('task_id')
+        new_status = request.POST.get('status')
+        
+        if not task_id:
+            messages.error(request, "Invalid task ID!")
+            return redirect('employee-task-list')
+            
+        try:
+            task = Task.objects.get(id=int(task_id), employee=request.user)
+            task.status = new_status
+            task.save()
+            messages.success(request, "Task status updated successfully!")
+        except (Task.DoesNotExist, ValueError):
+            messages.error(request, "Task not found or invalid ID!")
+        
+        return redirect('employee-tasks')
+    
+    current_date = timezone.now().date()
+    tasks = Task.objects.filter(employee=request.user,time_line__gte=current_date).order_by("time_line")
+    return render(request, 'Employee_task_list.html', {'tasks': tasks})
+
+
+
+
+
+def Employee_leave_view(request):
+    if request.method == 'POST':
+        form = Employee_leave_form(request.POST)
+        if form.is_valid():
+            leave_date = form.cleaned_data['leave_days']
+            
+            # Check if date is not in past
+            if leave_date < timezone.now().date():
+                messages.error(request, "Cannot select a past date")
+                return redirect('employee-leave')
+            
+            # Check existing salary record
+            salary_record = SalaryCalendar.objects.filter(employee=request.user).last()
+            if not salary_record:
+                messages.error(request, "No salary record found. Please contact your manager.")
+                return redirect('employee-leave')
+            
+            # Check for existing leave on same date
+            if SalaryCalendar.objects.filter(
+                employee=request.user,
+                leave_days=leave_date
+            ).exists():
+                messages.error(request, "You already have a leave request for this date")
+                return redirect('employee-leave')
+            
+            # Check leaves in current month
+            current_month_leaves = SalaryCalendar.objects.filter(
+                employee=request.user,
+                leave_days__month=leave_date.month,
+                leave_days__year=leave_date.year
+            ).count()
+
+            # Calculate salary after leave
+            original_salary = salary_record.salary
+            if current_month_leaves >= 1:
+                # Calculate per day salary (monthly salary / 30)
+                per_day_salary = original_salary / 30
+                # Deduct one day salary
+                new_salary = original_salary - per_day_salary
+                messages.warning(request, 
+                    f"This is your {current_month_leaves + 1}th leave. Salary deduction: ₹{per_day_salary:.2f}")
+            else:
+                new_salary = original_salary
+                messages.info(request, "First leave of the month - No salary deduction")
+            
+            # Create new leave record
+            leave = form.save(commit=False)
+            leave.employee = request.user
+            leave.salary = new_salary
+            leave.save()
+            
+            messages.success(request, f"Leave request submitted for {leave_date}")
+            return redirect('employee-leave')
+    else:
+        form = Employee_leave_form()
+    
+    # Get all leave records
+    all_leaves = SalaryCalendar.objects.filter(
+        employee=request.user
+    ).order_by('-leave_days')
+    
+    current_date = timezone.now().date()
+    
+    # Calculate total salary deductions this month
+    current_month_leaves = all_leaves.filter(
+        leave_days__month=current_date.month,
+        leave_days__year=current_date.year
+    )
+    
+    current_salary = SalaryCalendar.objects.filter(employee=request.user).last()
+    total_deduction = 0
+    
+    if current_salary and current_month_leaves.count() > 1:
+        per_day_salary = current_salary.salary / 30
+        total_deduction = per_day_salary * (current_month_leaves.count() - 1)
+    
+    context = {
+        'form': form,
+        'past_leaves': all_leaves.filter(leave_days__lt=current_date),
+        'upcoming_leaves': all_leaves.filter(leave_days__gte=current_date),
+        'month_leaves_count': current_month_leaves.count(),
+        'current_month': current_date.strftime('%B'),
+        'current_salary': current_salary,
+        'total_deduction': total_deduction,
+        'salary_after_deduction': current_salary.salary - total_deduction if current_salary else 0
+    }
+    
+    return render(request, 'Employee_leave.html', context)

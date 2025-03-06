@@ -1,0 +1,78 @@
+{% extends "admin_base.html" %}
+{% load widget_tweaks %}
+{% block main_block %}
+
+<div class="container mx-auto px-4 mt-28">
+    <div class="bg-white shadow-2xl rounded-2xl overflow-hidden border border-gray-100">
+        <div class="px-8 py-6 border-b border-gray-100 bg-gradient-to-r from-blue-600 to-purple-600">
+            <h2 class="text-2xl font-bold text-white">Employee Directory</h2>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Employee ID</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Name</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Department</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Email</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Joining Date</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Salary</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-100">
+                    {% for employee in employees %}
+                    <tr class="hover:bg-gray-50 transition-colors duration-200">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-3 py-1 text-xs font-semibold text-blue-600 bg-blue-100 rounded-full">
+                                {{ employee.employee_id }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {{ employee.username }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                            {{ employee.get_department_display }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                            {{ employee.email }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                            {{ employee.joining_date|date:"M d, Y" }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                            {% if employee.current_salary %}
+                                ₹{{ employee.current_salary.salary }}
+                            {% else %}
+                                <span class="text-gray-400">Not set</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div class="flex space-x-4">
+                                <a href="{%url 'manager-employee-details' employee.id%}" 
+                                   class="items-center px-3 py-1 rounded-lg border border-gray-300 text-blue-800 hover:text-gray-500 transition-colors duration-200">
+                                    <i class="fas fa-money-bill mr-2"></i> Salary
+                                </a>
+                                <a href="{%url 'manager-employee-delete' employee.id%}" class="items-center px-3 py-1 rounded-lg border border-gray-300 text-red-500 hover:text-gray-500 transition-colors duration-200">
+                                    <i class="fas fa-trash mr-2"></i> Delete
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                            <i class="fas fa-users text-4xl mb-4 text-gray-300"></i>
+                            <p>No employees found</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
