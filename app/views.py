@@ -5,6 +5,7 @@ from .models import CustomUser, DailyReport, SalaryCalendar, Task
 from .forms import SignupForm, LoginForm,ForgotPasswordForm, ResetPasswordForm, Manager_Task_Assign_To_Employee_form,Manager_add_salary_form,Employee_leave_form,Daily_report_form,Employee_update_form
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
+from django.db import IntegrityError
 
 
 # Create your views here.
@@ -22,7 +23,6 @@ def send_email_otp(user):
 
 # view for register/otp-verification/login/logout 
 
-
 def SignupView(request):
     if request.method == 'POST':
         form = SignupForm(request.POST)
@@ -33,32 +33,57 @@ def SignupView(request):
                 user.is_verified = False
                 
                 # Generate unique employee ID
-                last_user = CustomUser.objects.filter(
-                    employee_id__isnull=False,
-                    is_superuser=False
-                ).order_by('-employee_id').first()
-                
-                if last_user and last_user.employee_id:
-                    try:
-                        last_num = int(last_user.employee_id[2:])
-                        next_num = last_num + 1
-                        user.employee_id = f'IZ{next_num:04d}'  # Pad with zeros to 4 digits
-                    except ValueError:
-                        user.employee_id = 'IZ0001'  # Fallback if parsing fails
-                else:
-                    user.employee_id = 'IZ0001'  # First employee
+                try:
+                    last_user = CustomUser.objects.filter(
+                        employee_id__isnull=False,
+                        employee_id__startswith='IZ',
+                        is_superuser=False
+                    ).order_by('-employee_id').first()
+                    
+                    if last_user and last_user.employee_id:
+                        try:
+                            last_num = int(last_user.employee_id[2:])  # Get number after 'IZ'
+                            next_num = last_num + 1
+                            new_id = f'IZ{next_num:02d}'
+                            
+                            # Make sure the new ID is unique
+                            while CustomUser.objects.filter(employee_id=new_id).exists():
+                                next_num += 1
+                                new_id = f'IZ{next_num:02d}'
+                                
+                            user.employee_id = new_id
+                        except (ValueError, IndexError):
+                            # If parsing fails, start from IZ0001
+                            user.employee_id = 'IZ01'
+                    else:
+                        # If no existing users, start from IZ0001
+                        user.employee_id = 'IZ01'
+                except Exception as e:
+                    messages.error(request, f"Error generating employee ID: {str(e)}")
+                    return render(request, 'signup.html', {'form': form})
                 
                 user.save()
                 send_email_otp(user)
                 return redirect('verify')
-            except IntegrityError:  
-                messages.error(request, "Error creating account. Please try again.")
+                
+            except IntegrityError as e:
+                if 'username' in str(e).lower():
+                    messages.error(request, "Username already exists. Please choose a different username.")
+                elif 'email' in str(e).lower():
+                    messages.error(request, "Email already registered. Please use a different email.")
+                elif 'employee_id' in str(e).lower():
+                    messages.error(request, "Employee ID generation failed. Please try again.")
+                else:
+                    messages.error(request, f"Error creating account: {str(e)}")
                 return render(request, 'signup.html', {'form': form})
+            except Exception as e:
+                messages.error(request, f"Unexpected error: {str(e)}")
+                return render(request, 'signup.html', {'form': form})
+        else:
+            messages.error(request, "Please correct the errors in the form.")
     else:
         form = SignupForm()
     return render(request, 'signup.html', {'form': form})
-
-
 
 
 def Verify_otp_View(request):

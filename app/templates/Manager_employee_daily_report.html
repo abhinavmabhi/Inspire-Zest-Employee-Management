@@ -9,64 +9,160 @@
     document.addEventListener('DOMContentLoaded', function() {
         AOS.init({
             duration: 1000,
-            once: true,
+            once: false,
             offset: 50
         });
     });
 </script>
 
 <style>
-    .filter-card {
-        background: linear-gradient(145deg, #ffffff, #f0f0f0);
-        border-radius: 15px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-        transition: all 0.3s ease;
+    .page-container {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 1.5rem;
     }
 
     .report-card {
-        background: linear-gradient(145deg, #ffffff, #f0f0f0);
-        border-radius: 20px;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(99, 102, 241, 0.05);
         transition: all 0.3s ease;
+        border: 1px solid rgba(99, 102, 241, 0.1);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
     }
 
     .report-card:hover {
-        transform: translateY(-5px);
-        background: linear-gradient(145deg, #f9f9f9, #f0f0f0);
-        transition: transform 0.3s ease, background 1.5s ease-in-out;
+        transform: translateY(-3px);
+        box-shadow: 0 12px 20px rgba(99, 102, 241, 0.15);
     }
 
     .report-header {
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        border-radius: 15px;
+        background: linear-gradient(135deg, #4f46e5, #6366f1);
+        padding: 1rem;
+        border-radius: 12px 12px 0 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .report-header::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, transparent 48%, rgba(255,255,255,0.1) 50%, transparent 52%);
+        background-size: 200% 200%;
+        animation: shimmer 3s infinite;
+    }
+
+    @keyframes shimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+
+    .report-content {
+        flex: 1;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .report-footer {
+        padding: 0.75rem 1rem;
+        background: #f8fafc;
+        border-top: 1px solid #e5e7eb;
+        border-radius: 0 0 12px 12px;
+    }
+
+    .department-badge {
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(8px);
+    }
+
+    .filter-section {
+        background-color: white;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        padding: 0.75rem;
+        border: 1px solid #f3f4f6;
+        max-width: 700px;
+        margin: 0 auto 2rem;
+    }
+
+    .filter-input {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        background-color: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        transition: all 0.2s;
+    }
+
+    .filter-input:focus {
+        outline: none;
+        ring: 1px solid rgba(99, 102, 241, 0.4);
+        border-color: #818cf8;
+    }
+
+    .filter-input:hover {
+        border-color: #a5b4fc;
+    }
+
+    .filter-button {
+        padding: 0.5rem 1rem;
+        background-color: #4f46e5;
+        color: white;
+        font-size: 0.875rem;
+        font-weight: 500;
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s;
+    }
+
+    .filter-button:hover {
+        background-color: #4338ca;
+    }
+
+    .filter-button:focus {
+        outline: none;
+        ring: 2px solid rgba(99, 102, 241, 0.5);
+        ring-offset: 2px;
     }
 </style>
 
-<div class="container mx-auto px-4 mt-28">
-    <div class="max-w-7xl mx-auto">
-        <!-- Header with Animation -->
-        <div class="text-center mb-8" data-aos="fade-down">
-            <h1 class="text-3xl font-bold text-gray-800">Employee Daily Reports</h1>
-            <p class="text-gray-600 mt-2">View and filter employee updates</p>
-        </div>
+<div class="page-container mt-20">
+    <!-- Page Header -->
+    <div class="text-center mt-20 mb-4" data-aos="fade-down">
+        <h1 class="text-2xl font-bold text-gray-800">Employee Daily Reports</h1>
+        <p class="text-sm text-gray-600 mt-1">View and filter employee updates</p>
+    </div>
 
-        <!-- Filter Section with Animation -->
-        <div class="filter-card p-6 mb-8" data-aos="fade-up" data-aos-delay="100">
-            <form method="get" class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Date Filter -->
-                <div data-aos="fade-right" data-aos-delay="200">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Select Date</label>
-                    <input type="date" name="date" 
+    <!-- Filters Section -->
+    <div class="filter-section" data-aos="fade-up">
+        <form method="get" class="flex flex-wrap items-end gap-3">
+            <!-- Date Filter -->
+            <div class="flex-1 min-w-[160px]">
+                <label class="block text-xs font-medium text-gray-500 mb-1">Report Date</label>
+                <div class="relative">
+                    <input type="date" 
+                        name="date" 
                         value="{{ selected_date }}"
                         max="{{ today|date:'Y-m-d' }}"
-                        class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        class="filter-input w-full pl-8">
+                    <i class="fas fa-calendar-alt absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                 </div>
+            </div>
 
-                <!-- Employee Filter -->
-                <div data-aos="fade-up" data-aos-delay="300">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Select Employee</label>
-                    <select name="employee" 
-                        class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            <!-- Employee Filter -->
+            <div class="flex-1 min-w-[180px]">
+                <label class="block text-xs font-medium text-gray-500 mb-1">Select Employee</label>
+                <div class="relative">
+                    <select name="employee" class="filter-input w-full appearance-none pl-8 pr-8">
                         <option value="">All Employees</option>
                         {% for emp in employees %}
                         <option value="{{ emp.id }}" {% if selected_employee == emp.id|stringformat:"s" %}selected{% endif %}>
@@ -74,60 +170,74 @@
                         </option>
                         {% endfor %}
                     </select>
+                    <i class="fas fa-user absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
                 </div>
+            </div>
 
-                <!-- Filter Button -->
-                <div class="flex items-end gap-4" data-aos="fade-left" data-aos-delay="400">
-                    <button type="submit" 
-                        class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all duration-300 hover:scale-[1.02]">
-                        <i class="fas fa-filter mr-2"></i>Apply Filters
-                    </button>
+            <!-- Filter Button -->
+            <button type="submit" class="filter-button whitespace-nowrap">
+                <i class="fas fa-filter text-xs"></i>
+                <span>Filter</span>
+            </button>
+        </form>
+    </div>
+
+    <!-- Reports Grid -->
+    {% if qs %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {% for report in qs %}
+        <div class="report-card" data-aos="fade-up" data-aos-delay="{{ forloop.counter|add:100 }}">
+            <!-- Card Header -->
+            <div class="report-header border border-black">
+                <div class="flex items-start justify-between mb-2">
+                    <h3 class="text-sm font-semibold text-white truncate">{{ report.employee.username }}</h3>
+                    <span class="department-badge px-2 py-0.5 rounded-full text-xs font-medium text-white">
+                        {{ report.employee.get_department_display }}
+                    </span>
                 </div>
-            </form>
-        </div>
-
-        <!-- Reports Grid -->
-        {% if qs %}
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {% for report in qs %}
-            <div class="report-card overflow-hidden" data-aos="fade-up" 
-                 data-aos-delay="{{ forloop.counter|add:400 }}">
-                <div class="report-header p-6 text-white">
-                    <div class="flex justify-between items-center mb-2">
-                        <h3 class="text-lg font-semibold">{{ report.employee.username }}</h3>
-                        <span class="text-sm bg-white/20 px-3 py-1 rounded-full">
-                            {{ report.employee.get_department_display }}
-                        </span>
-                    </div>
-                    <p class="text-sm opacity-75">{{ report.report_date|date:"F d, Y" }}</p>
+                <div class="flex items-center text-white/80 text-xs">
+                    <i class="fas fa-calendar-alt mr-1.5"></i>
+                    <span>{{ report.report_date|date:"M d, Y" }}</span>
                 </div>
+            </div>
 
-                <div class="p-6">
-                    <div class="mb-4">
-                        <label class="text-sm font-medium text-gray-600">Client Name</label>
-                        <p class="text-gray-800 font-medium mt-1">{{ report.client_name }}</p>
-                    </div>
-
+            <!-- Card Content -->
+            <div class="report-content border border-black">
+                <div class="space-y-3">
                     <div>
-                        <label class="text-sm font-medium text-gray-600">Daily Update</label>
-                        <p class="text-gray-700 mt-1 line-clamp-3">{{ report.todays_update }}</p>
+                        <h4 class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Client</h4>
+                        <p class="text-sm text-gray-900">{{ report.client_name }}</p>
                     </div>
-
-                    <div class="mt-4 pt-4 border-t border-gray-200">
-                        <div class="flex justify-between items-center text-sm text-gray-500">
-                            <span>ID: {{ report.employee.employee_id }}</span>
-                            <span>{{ report.report_date|date:"M d,Y" }}</span>
-                        </div>
+                    <div>
+                        <h4 class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Daily Update</h4>
+                        <p class="text-sm text-gray-700 line-clamp-3">{{ report.todays_update }}</p>
                     </div>
                 </div>
             </div>
-            {% endfor %}
+
+            <!-- Card Footer -->
+            <div class="report-footer border border-black">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center gap-1.5 text-xs text-gray-600">
+                        <i class="fas fa-id-badge text-indigo-500"></i>
+                        <span>{{ report.employee.employee_id }}</span>
+                    </div>
+                    <button class="text-indigo-600 hover:text-indigo-800 transition-colors duration-200">
+                        <i class="fas fa-chevron-right text-xs"></i>
+                    </button>
+                </div>
+            </div>
         </div>
-        {% else %}
-        <div class="text-center py-12" data-aos="fade-up" data-aos-delay="200">
-            <div class="text-gray-500">No reports found</div>
-        </div>
-        {% endif %}
+        {% endfor %}
     </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="text-center py-8 bg-white rounded-lg shadow-sm" data-aos="fade-up">
+        <i class="fas fa-clipboard-list text-3xl text-gray-400 mb-2"></i>
+        <h3 class="text-sm font-medium text-gray-900">No Reports Found</h3>
+        <p class="text-xs text-gray-500 mt-1">Try adjusting your filters or select a different date</p>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

@@ -8,7 +8,7 @@
         background-size: 200% 200%;
         border-radius: 20px;
         box-shadow: 5px 5px 15px rgba(99, 102, 241, 0.3),
-                   10px 10px 20px rgba(139, 92, 246, 0.2);
+            10px 10px 20px rgba(139, 92, 246, 0.2);
         position: relative;
         overflow: hidden;
         transition: all 0.3s ease, background-image 2s ease-in-out;
@@ -24,8 +24,8 @@
         border-radius: 20px;
         padding: 2px;
         background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        -webkit-mask: linear-gradient(#fff 0 0) content-box, 
-                     linear-gradient(#fff 0 0);
+        -webkit-mask: linear-gradient(#fff 0 0) content-box,
+            linear-gradient(#fff 0 0);
         -webkit-mask-composite: xor;
         mask-composite: exclude;
         pointer-events: none;
@@ -49,11 +49,14 @@
     }
 
     .leave-item {
+        background: linear-gradient(145deg, #ffffff, #f0f0f0);
+        border: 1px solid rgba(99, 102, 241, 0.1);
         transition: all 0.3s ease;
     }
 
     .leave-item:hover {
-        transform: translateX(5px);
+        transform: translateY(-5px);
+        border-color: rgba(99, 102, 241, 0.3);
     }
 </style>
 
@@ -94,34 +97,46 @@
                 <p class="text-3xl font-bold">{{ employee.get_department_display }}</p>
                 <p class="text-sm opacity-75 mt-1">Current role</p>
             </div>
-           
+
         </div>
 
         <!-- Leave History -->
-        {% if month_leaves %}
-        <div class="bg-white rounded-lg shadow-sm p-6">
-            <h2 class="text-xl font-semibold text-gray-800 mb-4">Leave History - {{ current_month }}</h2>
-            <div class="space-y-3">
-                {% for leave in month_leaves %}
-                <div class="leave-item bg-gray-50 p-4 rounded-lg flex justify-between items-center">
-                    <div>
-                        <p class="font-medium text-gray-800">{{ leave.leave_days|date:"l" }}</p>
-                        <p class="text-sm text-gray-600">{{ leave.leave_days|date:"M d, Y" }}</p>
+        {% with processed_dates='' %}
+
+<!-- Leave History Section -->
+{% if month_leaves %}
+<div class="bg-white rounded-lg shadow-sm p-6">
+    <h2 class="text-xl font-semibold text-gray-800 mb-4">Leave History - {{ current_month }}</h2>
+
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 ">
+        {% regroup month_leaves by leave_days|date:"Y-m-d" as leaves_by_date %}
+        
+        {% for date_group in leaves_by_date %}
+            <div class="leave-item bg-gray-50 p-4 rounded-lg hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 border border-black">
+                <div class="flex flex-col">
+                    <!-- Day Name -->
+                    <div class="text-sm font-semibold text-indigo-600">
+                        {{ date_group.list.0.leave_days|date:"l" }}
                     </div>
-                    <span class="text-sm text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
-                        {% if leave.leave_days|date:"Y-m-d" < current_date|date:"Y-m-d" %}
-                            Taken
-                        {% else %}
-                            Upcoming
-                        {% endif %}
-                    </span>
+
+                    <!-- Date -->
+                    <div class="text-lg font-bold text-gray-800 mt-1">
+                        {{ date_group.list.0.leave_days|date:"d" }}
+                    </div>
+
+                    <!-- Month -->
+                    <div class="text-sm text-gray-600">
+                        {{ date_group.list.0.leave_days|date:"F" }}
+                    </div>
                 </div>
-                {% endfor %}
             </div>
-        </div>
-        {% endif %}
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% endwith %}
     </div>
 </div>
 
 {% endblock %}
-

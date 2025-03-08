@@ -15,7 +15,8 @@ class CustomUser(AbstractUser):
 
     is_verified = models.BooleanField(default=False)
     otp = models.CharField(max_length=10, null=True, blank=True)
-    employee_id = models.CharField(max_length=7, unique=True, null=True, blank=True)
+    email = models.EmailField(unique=True)
+    employee_id = models.CharField(max_length=10, unique=True, null=True)
     department = models.CharField(max_length=3, choices=DEPARTMENT_CHOICES, null=True, blank=True)
     joining_date = models.DateField(null=True, blank=True)
 
