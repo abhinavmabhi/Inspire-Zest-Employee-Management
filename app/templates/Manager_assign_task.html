@@ -1,37 +1,159 @@
 {% extends 'admin_base.html' %}
 {% load widget_tweaks %}
 {% block main_block %}
-<div class="container mx-auto px-4 mt-28 max-w-2xl">
-    <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">Assign Task to Employee</h2>
-    
-    <div class="bg-white shadow-lg border border-gray-900 rounded-lg p-8 mb-5">
-        <form method="post" class="space-y-6 ">
-            {% csrf_token %}
-            {% for field in form %}
-            <div class="space-y-2">
-                <label class="block text-sm font-medium text-gray-700">
-                    {{ field.label }}
-                </label>
-                <div class="mt-1">
-                    {{ field|add_class:"w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" }}
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 220px;
+        margin-bottom: 5rem;
+        border-radius: 0 0 10rem 10rem;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+        gap: 1rem;
+    }
+
+    .form-container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .form-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(163deg, #c800cc 0%, #3700ff 100%);
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .form-container:hover::before {
+        opacity: 0.05;
+    }
+
+    .form-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .input-group {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+
+    .input-group label {
+        position: absolute;
+        left: 1rem;
+        top: -0.5rem;
+        padding: 0 0.5rem;
+        background: white;
+        color: #4b5563;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+    }
+
+    .input-group input:focus + label,
+    .input-group textarea:focus + label,
+    .input-group select:focus + label {
+        color: #3b82f6;
+        transform: translateY(-0.1rem);
+    }
+</style>
+
+<div class="min-h-screen bg-gray-50 pb-12">
+    <!-- Header -->
+    <div class="page-header w-5/6 mx-auto">
+        <h1 class="text-4xl font-bold text-white mt-5">Task Assignment</h1>
+        <p class="text-indigo-100">Create and assign new tasks to employees</p>
+    </div>
+
+    <div class="container mx-auto px-4 ">
+        <div class="max-w-3xl mx-auto ">
+            <!-- Form Container -->
+            <div class="form-container p-8 border border-black shadow-lg">
+                <div class="form-content ">
+                    {% if messages %}
+                    <div class="mb-6">
+                        {% for message in messages %}
+                        <div class="p-4 rounded-lg mb-4 {% if message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">
+                            {{ message }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <form method="post" class="space-y-6">
+                        {% csrf_token %}
+                        {% for field in form %}
+                        <div class="input-group">
+                            {{ field|add_class:"w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring focus:ring-blue-200 transition-all duration-200" }}
+                            <label class="font-medium">{{ field.label }}</label>
+                            {% if field.errors %}
+                            <p class="mt-1 text-sm text-red-600">{{ field.errors|join:", " }}</p>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+
+                        <div class="flex items-center justify-end space-x-4 mt-8">
+                            <button type="button" onclick="window.history.back()" 
+                                    class="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 
+                                    focus:outline-none focus:ring-2 focus:ring-gray-300 transition-all duration-200">
+                                <i class="fas fa-arrow-left mr-2"></i>
+                                Cancel
+                            </button>
+                            <button type="submit" 
+                                    class="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg
+                                    hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 
+                                    focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200">
+                                <i class="fas fa-paper-plane mr-2"></i>
+                                Assign Task
+                            </button>
+                        </div>
+                    </form>
                 </div>
-                {% if field.errors %}
-                <div class="text-red-500 text-sm mt-1">
-                    {{ field.errors }}
-                </div>
-                {% endif %}
             </div>
-            {% endfor %}
-            
-            <div class="flex items-center justify-end mt-6">
-                <button type="submit" 
-                    class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 
-                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 
-                    transition-colors duration-200">
-                    Assign Task
-                </button>
+
+            <!-- Task Guidelines -->
+            <div class="mt-8 bg-white rounded-lg p-6 shadow-lg border border-gray-100 border border-black">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                    <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
+                    Task Assignment Guidelines
+                </h3>
+                <ul class="space-y-3 text-gray-600">
+                    <li class="flex items-start">
+                        <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                        <span>Clearly specify the task requirements and expectations</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                        <span>Set realistic deadlines considering the task complexity</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                        <span>Provide detailed description to avoid confusion</span>
+                    </li>
+                </ul>
             </div>
-        </form>
+        </div>
     </div>
 </div>
+
+<script>
+    // Enhance form labels
+    document.querySelectorAll('.input-group input, .input-group textarea, .input-group select').forEach(input => {
+        if (input.value) {
+            input.parentElement.querySelector('label').style.transform = 'translateY(-0.1rem)';
+        }
+    });
+</script>
 {% endblock %}

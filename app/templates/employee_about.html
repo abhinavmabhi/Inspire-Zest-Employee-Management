@@ -1,0 +1,120 @@
+{% extends "employee_base.html" %}
+{% load widget_tweaks %}
+
+{% block main_block %}
+<style>
+    .employee-card {
+        background: linear-gradient(145deg, #ffffff, #f0f0f0);
+        border-radius: 20px;
+        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.2);
+        transition: all 0.5s ease;
+    }
+
+    .info-section {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        border-radius: 15px;
+        transition: transform 0.3s ease, box-shadow 0.5s ease;
+    }
+
+    .info-section:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 25px rgba(99, 102, 241, 0.3);
+    }
+
+    .detail-item {
+        transition: all 0.3s ease;
+    }
+
+    .detail-item:hover {
+        transform: translateX(5px);
+        background-color: rgba(99, 102, 241, 0.05);
+    }
+</style>
+
+<div class="container mx-auto px-4 mt-28">
+    <div class="max-w-4xl mx-auto">
+        <!-- Employee Card -->
+        <div class="employee-card p-8">
+            
+
+            <!-- Main Info Section -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <!-- Department Info -->
+                <div class="info-section p-6 text-white">
+                    <h3 class="text-lg font-semibold mb-2">Department</h3>
+                    <p class="text-3xl font-bold">{{ about.department }}</p>
+                    <p class="text-sm opacity-75 mt-2">Employee since {{ about.joining_date|date:"M d, Y" }}</p>
+                </div>
+
+                <!-- Status Info -->
+                <div class="info-section p-6 text-white">
+                    <h3 class="text-lg font-semibold mb-2">Account Status</h3>
+                    <p class="text-3xl font-bold">
+                        {% if about.is_verified %}Verified{% else %}Pending{% endif %}
+                    </p>
+                    <p class="text-sm opacity-75 mt-2">Last login: {{ about.last_login|date:"M d," }}</p>
+                </div>
+            </div>
+
+            <!-- Detailed Information -->
+            <div class="bg-white rounded-lg shadow-sm p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Employee Details</h2>
+                
+                <div class="space-y-4">
+                    <!-- Username -->
+                    <div class="detail-item p-4 rounded-lg">
+                        <label class="text-sm font-medium text-gray-600">Username</label>
+                        <p class="text-gray-800 font-medium mt-1">{{ about.username }}</p>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="detail-item p-4 rounded-lg">
+                        <label class="text-sm font-medium text-gray-600">Email Address</label>
+                        <p class="text-gray-800 font-medium mt-1">{{ about.email }}</p>
+                    </div>
+
+                    <!-- Department -->
+                    <div class="detail-item p-4 rounded-lg">
+                        <label class="text-sm font-medium text-gray-600">Department</label>
+                        <p class="text-gray-800 font-medium mt-1">{{ about.department }}</p>
+                    </div>
+
+                    <!-- Joining Date -->
+                    <div class="detail-item p-4 rounded-lg">
+                        <label class="text-sm font-medium text-gray-600">Joining Date</label>
+                        <p class="text-gray-800 font-medium mt-1">{{ about.joining_date|date:"F d, Y" }}</p>
+                    </div>
+
+                    <!-- Account Status -->
+                    <div class="detail-item p-4 rounded-lg">
+                        <label class="text-sm font-medium text-gray-600">Account Status</label>
+                        <div class="flex items-center mt-1">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                                {% if employee.is_verified %}
+                                    bg-green-100 text-green-800
+                                {% else %}
+                                    bg-yellow-100 text-white
+                                {% endif %}">
+                                {% if about.is_verified %}
+                                    Verified Account
+                                {% else %}
+                                    Pending Verification
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="mt-8 flex gap-4">
+                
+                <a href="{% url 'employee-update' %}" 
+                    class="flex-1 px-6 py-3 text-center bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200">
+                    Edit Details
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -3,100 +3,125 @@
 {% block main_block %}
 
 <style>
-    .salary-card {
-        background: linear-gradient(145deg, #ffffff, #f0f0f0);
+    .employee-card {
+        background-image: linear-gradient(145deg, #ffffff, #f0f0f0);
+        background-size: 200% 200%;
         border-radius: 20px;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-        transition: transform 0.3s ease;
+        box-shadow: 5px 5px 15px rgba(99, 102, 241, 0.3),
+                   10px 10px 20px rgba(139, 92, 246, 0.2);
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease, background-image 2s ease-in-out;
     }
 
-    .salary-info {
+    .employee-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-radius: 20px;
+        padding: 2px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, 
+                     linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
+    }
+
+    .employee-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .info-card {
         background: linear-gradient(135deg, #6366f1, #8b5cf6);
         border-radius: 15px;
         transition: all 0.3s ease;
     }
 
-    .salary-info:hover {
+    .info-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 10px 25px rgba(99, 102, 241, 0.2);
+        box-shadow: 0 10px 25px rgba(99, 102, 241, 0.2) 0.5esc;
+        transition: transform 0.3s ease, box-shadow 0.5s ease;
+
+    }
+
+    .leave-item {
+        transition: all 0.3s ease;
+    }
+
+    .leave-item:hover {
+        transform: translateX(5px);
     }
 </style>
 
 <div class="container mx-auto px-4 mt-28">
-    <div class="salary-card max-w-2xl mx-auto">
-        <!-- Header -->
-        <div class="px-8 py-6 border-b border-gray-200">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h2 class="text-2xl font-bold text-gray-800">Employee Details</h2>
-                    <p class="text-gray-600 mt-1">{{ employee.username }}</p>
-                </div>
-                <div class="text-right">
-                    <p class="text-sm text-gray-600">Employee ID</p>
-                    <p class="text-lg font-semibold text-gray-800">{{ employee.employee_id }}</p>
-                </div>
+    <div class="employee-card max-w-4xl mx-auto p-8">
+        <!-- Employee Header -->
+        <div class="flex items-center justify-between mb-8 pb-6 border-b border-gray-200">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">{{ employee.username }}</h1>
+                <p class="text-gray-600 mt-2">{{ employee.email }}</p>
+            </div>
+            <div class="text-right">
+                <span class="px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                    Joined: {{ employee.joining_date|date:"M d, Y" }}
+                </span>
             </div>
         </div>
-        
-        <div class="p-8">
-            <!-- Messages -->
-            {% if messages %}
-            <div class="mb-6">
-                {% for message in messages %}
-                <div class="mb-4 p-4 rounded-lg {% if message.tags == 'success' %}bg-green-100 text-green-700
-                    {% elif message.tags == 'error' %}bg-red-100 text-red-700
-                    {% elif message.tags == 'warning' %}bg-yellow-100 text-yellow-700
-                    {% else %}bg-blue-100 text-blue-700{% endif %}">
-                    {{ message }}
+
+        <!-- Info Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <!-- Salary Card -->
+            <div class="info-card p-6 text-white">
+                <h3 class="text-lg font-semibold mb-2">Current Salary</h3>
+                <p class="text-3xl font-bold">₹{{ current_salary.salary|default:"Not Set" }}</p>
+                <p class="text-sm opacity-75 mt-1">Monthly salary</p>
+            </div>
+
+            <!-- Leave Count Card -->
+            <div class="info-card p-6 text-white">
+                <h3 class="text-lg font-semibold mb-2">Leaves Taken</h3>
+                <p class="text-3xl font-bold">{{ month_leaves_count }}</p>
+                <p class="text-sm opacity-75 mt-1">In {{ current_month }}</p>
+            </div>
+
+            <!-- Department Card -->
+            <div class="info-card p-6 text-white">
+                <h3 class="text-lg font-semibold mb-2">Department</h3>
+                <p class="text-3xl font-bold">{{ employee.get_department_display }}</p>
+                <p class="text-sm opacity-75 mt-1">Current role</p>
+            </div>
+           
+        </div>
+
+        <!-- Leave History -->
+        {% if month_leaves %}
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Leave History - {{ current_month }}</h2>
+            <div class="space-y-3">
+                {% for leave in month_leaves %}
+                <div class="leave-item bg-gray-50 p-4 rounded-lg flex justify-between items-center">
+                    <div>
+                        <p class="font-medium text-gray-800">{{ leave.leave_days|date:"l" }}</p>
+                        <p class="text-sm text-gray-600">{{ leave.leave_days|date:"M d, Y" }}</p>
+                    </div>
+                    <span class="text-sm text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
+                        {% if leave.leave_days|date:"Y-m-d" < current_date|date:"Y-m-d" %}
+                            Taken
+                        {% else %}
+                            Upcoming
+                        {% endif %}
+                    </span>
                 </div>
                 {% endfor %}
             </div>
-            {% endif %}
-
-            <!-- Current Salary Info -->
-            {% if current_salary %}
-            <div class="salary-info mb-8 p-6 text-white">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <p class="text-sm opacity-75">Current Monthly Salary</p>
-                        <p class="text-3xl font-bold mt-1">₹{{ current_salary.salary|floatformat:2 }}</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-sm opacity-75">Per Day</p>
-                        <p class="text-xl font-semibold mt-1">₹{{ current_salary.salary|divisibleby:30|floatformat:2 }}</p>
-                    </div>
-                </div>
-                <p class="text-xs opacity-75 mt-4">Last Updated: {{ current_salary.leave_days|date:"M d, Y" }}</p>
-            </div>
-            {% endif %}
-
-            <!-- Salary Form -->
-            <form method="post">
-                {% csrf_token %}
-                <div class="space-y-6">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            {% if current_salary %}Update{% else %}Add{% endif %} Salary
-                        </label>
-                        {{ salary_form.salary|add_class:"w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" }}
-                    </div>
-
-                    <div class="bg-blue-50 p-4 rounded-lg text-sm text-blue-700">
-                        <h4 class="font-semibold mb-2">Note:</h4>
-                        <ul class="list-disc list-inside space-y-1">
-                            <li>Salary changes will take effect from the next month</li>
-                            <li>First leave of each month is free</li>
-                            <li>Additional leaves will result in salary deduction</li>
-                        </ul>
-                    </div>
-
-                    <button type="submit" 
-                            class="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors duration-200 font-medium">
-                        {% if current_salary %}Update{% else %}Add{% endif %} Salary
-                    </button>
-                </div>
-            </form>
         </div>
+        {% endif %}
     </div>
 </div>
+
 {% endblock %}
+

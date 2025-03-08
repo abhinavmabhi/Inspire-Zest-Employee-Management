@@ -10,28 +10,56 @@ class SignupForm(UserCreationForm):
 
     class Meta:
         model = CustomUser
-        fields = [
-            'username', 
-            'email', 
-            'department', 
-            'joining_date', 
-            'password1', 
-            'password2'
-        ]
+        fields = ['username','email','department','joining_date','password1','password2']
+        widgets = {
+            'username': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter username'
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter email'
+            }),
+            'department': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'joining_date': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date'
+            }),
+        }
+
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Remove help texts and customize password fields
+        self.fields['password1'].help_text = None
+        self.fields['password2'].help_text = None
+        self.fields['email'].widget = forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter email'
+        })
+        
+        self.fields['password1'].widget = forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter password'
+        })
+        self.fields['password2'].widget = forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Confirm password'
+        })
 
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.email = self.cleaned_data['email']
-        user.department = self.cleaned_data['department']
-        user.joining_date = self.cleaned_data['joining_date']
         if commit:
             user.save()
         return user
+    
+
 
 class LoginForm(forms.Form):
-    username = forms.CharField()
-    password = forms.CharField(widget=forms.PasswordInput)
-
+    username = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control','placeholder':'Enter username'}))
+    password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control','placeholder':'Enter password'}))
 
 class ForgotPasswordForm(forms.Form):
     email = forms.EmailField(
@@ -97,3 +125,23 @@ class Employee_leave_form(forms.ModelForm):
         if leave_date and leave_date < timezone.now().date():
             raise forms.ValidationError("Cannot select a past date")
         return leave_date
+    
+class Daily_report_form(forms.ModelForm):
+    class Meta:
+        model=DailyReport
+        fields=["client_name","todays_update"]
+        widgets={
+            'client_name':forms.TextInput(attrs={'class':'form-control'}),
+            'todays_update':forms.Textarea(attrs={'class':'form-control','rows':3,"style":"resize:none"})
+        }
+
+class Employee_update_form(forms.ModelForm):
+    class Meta:
+        model=CustomUser
+        fields=['username','email','department','joining_date']
+        widgets={
+            'username':forms.TextInput(attrs={'class':'form-control'}),
+            'email':forms.EmailInput(attrs={'class':'form-control'}),
+            'department':forms.Select(attrs={'class':'form-select'}),
+            'joining_date':forms.DateInput(attrs={'class':'form-control','type':'date'})
+        }

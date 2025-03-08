@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.views.generic import View
 from django.core.mail import send_mail
 from .models import CustomUser, DailyReport, SalaryCalendar, Task
-from .forms import SignupForm, LoginForm,ForgotPasswordForm, ResetPasswordForm, Manager_Task_Assign_To_Employee_form,Manager_add_salary_form,Employee_leave_form
+from .forms import SignupForm, LoginForm,ForgotPasswordForm, ResetPasswordForm, Manager_Task_Assign_To_Employee_form,Manager_add_salary_form,Employee_leave_form,Daily_report_form,Employee_update_form
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 
@@ -27,15 +27,38 @@ def SignupView(request):
     if request.method == 'POST':
         form = SignupForm(request.POST)
         if form.is_valid():
-            user = form.save(commit=False)
-            user.is_active = False
-            user.is_verified = False
-            user.save()
-            send_email_otp(user)
-            return redirect('verify')
+            try:
+                user = form.save(commit=False)
+                user.is_active = False
+                user.is_verified = False
+                
+                # Generate unique employee ID
+                last_user = CustomUser.objects.filter(
+                    employee_id__isnull=False,
+                    is_superuser=False
+                ).order_by('-employee_id').first()
+                
+                if last_user and last_user.employee_id:
+                    try:
+                        last_num = int(last_user.employee_id[2:])
+                        next_num = last_num + 1
+                        user.employee_id = f'IZ{next_num:04d}'  # Pad with zeros to 4 digits
+                    except ValueError:
+                        user.employee_id = 'IZ0001'  # Fallback if parsing fails
+                else:
+                    user.employee_id = 'IZ0001'  # First employee
+                
+                user.save()
+                send_email_otp(user)
+                return redirect('verify')
+            except IntegrityError:  
+                messages.error(request, "Error creating account. Please try again.")
+                return render(request, 'signup.html', {'form': form})
     else:
         form = SignupForm()
     return render(request, 'signup.html', {'form': form})
+
+
 
 
 def Verify_otp_View(request):
@@ -190,7 +213,80 @@ def Manager_list_all_employees(request):
 
 
 
+def Manager_employee_daily_report_view(request):
+    if not request.user.is_superuser:
+        return redirect('employee-dashboard')
+
+    # Initialize queryset with all reports
+    reports = DailyReport.objects.all()
+
+    # Get filter parameters
+    selected_date = request.GET.get('date')
+    selected_employee = request.GET.get('employee')
+
+    # Apply date filter
+    if selected_date:
+        # Convert string date to datetime
+        try:
+            filter_date = timezone.datetime.strptime(selected_date, '%Y-%m-%d').date()
+            reports = reports.filter(report_date=filter_date)
+        except ValueError:
+            messages.error(request, "Invalid date format")
+    
+    # Apply employee filter
+    if selected_employee:
+        reports = reports.filter(employee=selected_employee)
+
+    # Get all employees for the filter dropdown
+    employees = CustomUser.objects.filter(is_superuser=False)
+
+    # Order reports by date descending
+    reports = reports.order_by('-report_date')
+
+    context = {
+        'qs': reports,
+        'employees': employees,
+        'selected_date': selected_date,
+        'selected_employee': selected_employee,
+        'today': timezone.now().date()
+    }
+    
+    return render(request, 'Manager_employee_daily_report.html', context)
+
+
+
 def Manager_employee_details(request, pk):
+
+        employee = CustomUser.objects.get(pk=pk)
+        current_date = timezone.now().date()
+        
+        # Get current month's leaves
+        current_month_leaves = SalaryCalendar.objects.filter(
+            employee=employee,
+            leave_days__month=current_date.month,
+            leave_days__year=current_date.year
+        )
+        
+        # Get current salary
+        current_salary = SalaryCalendar.objects.filter(employee=employee).last()
+        
+        context = {
+            'employee': employee,
+            'current_salary': current_salary,
+            'month_leaves_count': current_month_leaves.count(),
+            'current_month': current_date.strftime('%B'),
+            'month_leaves': current_month_leaves,  # For detailed leave dates
+        }
+        
+        return render(request, 'Manager_employee_details.html', context)
+        
+    
+
+
+
+
+
+def Manager_employee_salary_add_nd_update_view(request, pk):
     if not request.user.is_superuser:
         return redirect('employee-dashboard')
         
@@ -223,7 +319,7 @@ def Manager_employee_details(request, pk):
             'current_salary': current_salary
         }
         
-        return render(request, 'Manager_employee_details.html', context)
+        return render(request, 'Manager_employee_add-salary.html', context)
         
     except CustomUser.DoesNotExist:
         messages.error(request, "Employee not found")
@@ -237,6 +333,10 @@ def Manager_delete_employee(request,pk):
         return redirect("employee-dashboard")
     CustomUser.objects.get(pk=pk).delete()
     return redirect('manager-employee-list')
+
+
+
+
 
 
 # employee 
@@ -307,7 +407,7 @@ def Employee_leave_view(request):
             # Calculate salary after leave
             original_salary = salary_record.salary
             if current_month_leaves >= 1:
-                # Calculate per day salary (monthly salary / 30)
+                # Calculate per day salary 
                 per_day_salary = original_salary / 30
                 # Deduct one day salary
                 new_salary = original_salary - per_day_salary
@@ -360,3 +460,79 @@ def Employee_leave_view(request):
     }
     
     return render(request, 'Employee_leave.html', context)
+
+def Employee_daily_report_view(request):
+    if request.user.is_superuser:
+        return redirect('manager-dashboard')
+        
+    if request.method == "POST":
+        form = Daily_report_form(request.POST)
+        if form.is_valid():
+            report = form.save(commit=False)
+            report.employee = request.user
+            report.save()
+            messages.success(request, "Report Submitted Successfully")
+            return redirect('employee-daily-report')    
+        else:
+            messages.error(request, "Please check your form inputs")
+    else:
+        form = Daily_report_form()
+
+    # Get today's reports
+    today_reports = DailyReport.objects.filter(
+        employee=request.user,
+        report_date=timezone.now().date()
+    ).order_by('-report_date')
+
+    context = {
+        "form": form,
+        "today_reports": today_reports
+    }
+    
+    return render(request, "employee_daily_report.html", context)
+
+
+
+
+def Employee_about_view(request):
+    about=CustomUser.objects.get(id=request.user.id)
+    return render(request,"employee_about.html",{'about':about})
+
+
+def Employee_Details_update_view(request):
+    if request.method == 'POST':
+        form = Employee_update_form(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Profile updated successfully")
+            return redirect('employee-about')
+    else:
+        form = Employee_update_form(instance=request.user)
+    return render(request, 'employee_update.html', {'form': form})
+
+
+def Employee_Details_update_view(request):
+    if request.method == 'POST':
+        form = Employee_update_form(request.POST, instance=request.user)
+        if form.is_valid():
+            try:
+                user = form.save(commit=False)
+                # Add validation for any unique fields
+                if CustomUser.objects.exclude(id=request.user.id).filter(email=user.email).exists():
+                    messages.error(request, "This email is already in use.")
+                    return render(request, 'employee_update.html', {'form': form})
+                
+                user.save()
+                messages.success(request, "Profile updated successfully!")
+                return redirect('employee-about')
+            except Exception as e:
+                messages.error(request, f"Error updating profile: {str(e)}")
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = Employee_update_form(instance=request.user)
+    
+    return render(request, 'employee_update.html', {
+        'form': form,
+        'employee': request.user
+    })
