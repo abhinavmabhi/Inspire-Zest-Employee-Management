@@ -310,7 +310,6 @@ def Manager_employee_details(request, pk):
 
 
 
-
 def Manager_employee_salary_add_nd_update_view(request, pk):
     if not request.user.is_superuser:
         return redirect('employee-dashboard')
@@ -323,11 +322,20 @@ def Manager_employee_salary_add_nd_update_view(request, pk):
             if salary_form.is_valid():
                 salary = salary_form.save(commit=False)
                 salary.employee = employee
-                salary.leave_days = timezone.now().date()  # Set default date
+                salary.leave_days = timezone.now().date()
                 
                 try:
                     salary.save()
-                    messages.success(request, f"Salary added successfully for {employee.username}")
+                    # Calculate deductions for success message
+                    pf_message = f", PF Deduction: ₹{salary.pf_amount:.2f}" if salary.pf_percentage else ""
+                    esi_message = f", ESI Deduction: ₹{salary.esi_amount:.2f}" if salary.esi_percentage else ""
+                    net_salary = f", Net Salary: ₹{salary.net_salary:.2f}"
+                    
+                    messages.success(
+                        request, 
+                        f"Salary added successfully for {employee.username}"
+                        f" (Basic: ₹{salary.salary:.2f}{pf_message}{esi_message}{net_salary})"
+                    )
                 except Exception as e:
                     messages.error(request, f"Error saving salary: {str(e)}")
                 
@@ -338,10 +346,25 @@ def Manager_employee_salary_add_nd_update_view(request, pk):
         # Get current salary if exists
         current_salary = SalaryCalendar.objects.filter(employee=employee).last()
         
+        # Calculate total deductions for current month
+        current_date = timezone.now().date()
+        month_leaves = SalaryCalendar.objects.filter(
+            employee=employee,
+            leave_days__month=current_date.month,
+            leave_days__year=current_date.year
+        )
+        
         context = {
             'employee': employee,
             'salary_form': salary_form,
-            'current_salary': current_salary
+            'current_salary': current_salary,
+            'month_leaves_count': month_leaves.count(),
+            'current_month': current_date.strftime('%B'),
+            'deductions': {
+                'pf': current_salary.pf_amount if current_salary else 0,
+                'esi': current_salary.esi_amount if current_salary else 0,
+                'total': current_salary.total_deductions if current_salary else 0
+            }
         }
         
         return render(request, 'Manager_employee_add-salary.html', context)
@@ -349,6 +372,7 @@ def Manager_employee_salary_add_nd_update_view(request, pk):
     except CustomUser.DoesNotExist:
         messages.error(request, "Employee not found")
         return redirect('manager-employee-list')
+
 
 
 
@@ -521,7 +545,8 @@ def Employee_daily_report_view(request):
 
 def Employee_about_view(request):
     about=CustomUser.objects.get(id=request.user.id)
-    return render(request,"employee_about.html",{'about':about})
+    salary=SalaryCalendar.objects.filter(employee=about).last()
+    return render(request,"employee_about.html",{'about':about,'salary':salary})
 
 
 def Employee_Details_update_view(request):

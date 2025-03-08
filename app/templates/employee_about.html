@@ -57,6 +57,27 @@
                 </div>
             </div>
 
+
+            <!-- salary  -->
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <!-- Department Info -->
+                <div class="info-section p-6 text-white" data-aos="flip-down" data-aos-delay="900">
+                    <h3 class="text-lg font-semibold mb-2">Salary</h3>
+                    <p class="text-3xl font-bold">{{ salary.salary }}</p>
+                </div>
+
+                <!-- Status Info -->
+                <div class="info-section p-6 text-white" data-aos="flip-up">
+                    <h3 class="text-lg font-semibold mb-2">Total Decuction</h3>
+                    <p class="text-3xl font-bold">
+                        {{salary.total_deductions}}                    </p>
+                    <p class="text-sm opacity-75 mt-2">PF: {{salary.pf_amount}}</p>
+                    <p class="text-sm opacity-75 mt-2">ESI: {{salary.esi_amount}}</p>
+
+                </div>
+            </div>
+
             <!-- Detailed Information -->
             <div class="bg-white rounded-lg shadow-sm p-6 border border-black" data-aos="flip-up" data-aos-delay="500">
                 <h2 class="text-xl font-semibold text-gray-800 mb-4">Employee Details</h2>

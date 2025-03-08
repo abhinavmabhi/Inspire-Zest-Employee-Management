@@ -103,10 +103,40 @@ class Manager_Task_Assign_To_Employee_form(forms.ModelForm):
 class Manager_add_salary_form(forms.ModelForm):
     class Meta:
         model = SalaryCalendar
-        fields = ["salary"]
+        fields = ["salary", "pf_percentage", "esi_percentage"]
         widgets = {
-            'salary': forms.NumberInput(attrs={'class': 'form-control border border-black' }),
+            'salary': forms.NumberInput(attrs={
+                'class': 'form-control border border-black',
+                'placeholder': 'Enter basic salary'
+            }),
+            'pf_percentage': forms.NumberInput(attrs={
+                'class': 'form-control border border-black',
+                'placeholder': 'Enter PF % (optional)',
+                'min': '0',
+                'max': '100',
+                'step': '0.01'
+            }),
+            'esi_percentage': forms.NumberInput(attrs={
+                'class': 'form-control border border-black',
+                'placeholder': 'Enter ESI % (optional)',
+                'min': '0',
+                'max': '100',
+                'step': '0.01'
+            })
         }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        pf_percentage = cleaned_data.get('pf_percentage')
+        esi_percentage = cleaned_data.get('esi_percentage')
+
+        if pf_percentage and (pf_percentage < 0 or pf_percentage > 100):
+            raise forms.ValidationError("PF percentage must be between 0 and 100")
+
+        if esi_percentage and (esi_percentage < 0 or esi_percentage > 100):
+            raise forms.ValidationError("ESI percentage must be between 0 and 100")
+
+        return cleaned_data
 
 class Employee_leave_form(forms.ModelForm):
     class Meta:

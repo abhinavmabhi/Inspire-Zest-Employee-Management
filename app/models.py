@@ -3,6 +3,7 @@ from django.utils import timezone
 from datetime import date
 from random import randint
 from django.contrib.auth.models import AbstractUser
+from decimal import Decimal
 
 class CustomUser(AbstractUser):
     DEPARTMENT_CHOICES = [
@@ -59,13 +60,54 @@ class DailyReport(models.Model):
     def __str__(self):
         return f'Report by {self.employee.username} on {self.report_date}'
 
+
+
+
 class SalaryCalendar(models.Model):
     employee = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     leave_days = models.DateField(default=timezone.now)
     salary = models.FloatField()
+    pf_percentage = models.DecimalField(
+        max_digits=5, 
+        decimal_places=2,
+        null=True, 
+        blank=True,
+    )
+    esi_percentage = models.DecimalField(
+        max_digits=5, 
+        decimal_places=2,
+        null=True, 
+        blank=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True,null=True,blank=True) 
+
+    @property
+    def pf_amount(self):
+        """Calculate PF deduction if applicable"""
+        if self.pf_percentage:
+            return (Decimal(str(self.salary)) * self.pf_percentage) / Decimal('100.0')
+        return Decimal('0.0')
+
+    @property
+    def esi_amount(self):
+        """Calculate ESI deduction if applicable"""
+        if self.esi_percentage:
+            return (Decimal(str(self.salary)) * self.esi_percentage) / Decimal('100.0')
+        return Decimal('0.0')
+
+    @property
+    def total_deductions(self):
+        """Calculate total deductions"""
+        return self.pf_amount + self.esi_amount
+
+    @property
+    def net_salary(self):
+        """Calculate net salary after all deductions"""
+        return Decimal(str(self.salary)) - self.total_deductions
 
     def __str__(self):
         return f'Calendar for {self.employee.username}'
+
 
 class Task(models.Model):
     employee = models.ForeignKey(CustomUser, on_delete=models.CASCADE)

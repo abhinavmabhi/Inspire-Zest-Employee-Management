@@ -20,6 +20,13 @@
         transform: translateY(-5px);
         box-shadow: 0 10px 25px rgba(99, 102, 241, 0.2);
     }
+
+    .deduction-badge {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(4px);
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+    }
 </style>
 
 <div class="container mx-auto px-4 mt-28">
@@ -56,14 +63,42 @@
             <!-- Current Salary Info -->
             {% if current_salary %}
             <div class="salary-info mb-8 p-6 text-white" data-aos="fade-left">
-                <div class="flex justify-between items-center">
+                <!-- Basic Salary -->
+                <div class="flex justify-between items-start mb-4">
                     <div>
-                        <p class="text-sm opacity-75">Current Monthly Salary</p>
+                        <p class="text-sm opacity-75">Basic Salary</p>
                         <p class="text-3xl font-bold mt-1">₹{{ current_salary.salary|floatformat:2 }}</p>
                     </div>
-                    
+                    <div class="text-right">
+                        <p class="text-sm opacity-75">Last Updated</p>
+                        <p class="text-sm font-medium mt-1">{{ current_salary.leave_days|date:"M d, Y" }}</p>
+                    </div>
                 </div>
-                <p class="text-xs opacity-75 mt-4">Last Leave: {{ current_salary.leave_days|date:"M d, Y" }}</p>
+
+                <!-- Deductions -->
+                <div class="space-y-3 mt-6">
+                    {% if current_salary.pf_percentage %}
+                    <div class="deduction-badge flex justify-between items-center">
+                        <span>PF Deduction ({{ current_salary.pf_percentage }}%)</span>
+                        <span class="font-medium">-₹{{ current_salary.pf_amount|floatformat:2 }}</span>
+                    </div>
+                    {% endif %}
+
+                    {% if current_salary.esi_percentage %}
+                    <div class="deduction-badge flex justify-between items-center">
+                        <span>ESI Deduction ({{ current_salary.esi_percentage }}%)</span>
+                        <span class="font-medium">-₹{{ current_salary.esi_amount|floatformat:2 }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Net Salary -->
+                <div class="mt-6 pt-4 border-t border-white/10">
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm opacity-75">Net Salary</span>
+                        <span class="text-2xl font-bold">₹{{ current_salary.net_salary|floatformat:2 }}</span>
+                    </div>
+                </div>
             </div>
             {% endif %}
 
@@ -71,19 +106,40 @@
             <form method="post">
                 {% csrf_token %}
                 <div class="space-y-6" data-aos="fade-right" data-aos-delay="200">
+                    <!-- Basic Salary -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">
-                            {% if current_salary %}Update{% else %}Add{% endif %} Salary
+                            Basic Salary
                         </label>
                         {{ salary_form.salary|add_class:"w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" }}
                     </div>
 
+                    <!-- PF Percentage -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            PF Deduction Percentage
+                            <span class="text-xs text-gray-500 ml-1">(Optional)</span>
+                        </label>
+                        {{ salary_form.pf_percentage|add_class:"w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" }}
+                    </div>
+
+                    <!-- ESI Percentage -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            ESI Deduction Percentage
+                            <span class="text-xs text-gray-500 ml-1">(Optional)</span>
+                        </label>
+                        {{ salary_form.esi_percentage|add_class:"w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" }}
+                    </div>
+
+                    <!-- Information Box -->
                     <div class="bg-blue-50 p-4 rounded-lg text-sm text-blue-700">
-                        <h4 class="font-semibold mb-2">Note:</h4>
+                        <h4 class="font-semibold mb-2">Important Notes:</h4>
                         <ul class="list-disc list-inside space-y-1">
-                            <li>Update salary if needed</li>
+                            <li>PF and ESI deductions are optional</li>
+                            <li>Percentages must be between 0 and 100</li>
                             <li>First leave of each month is free</li>
-                            <li>Additional leaves will deducted from the salary</li>
+                            <li>Additional leaves will be deducted from salary</li>
                         </ul>
                     </div>
 
