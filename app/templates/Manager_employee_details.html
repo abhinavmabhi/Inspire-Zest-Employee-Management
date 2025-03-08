@@ -99,10 +99,10 @@
             <div class="info-card p-6 text-white">
                 <h3 class="text-lg font-semibold mb-2">Basic Salary</h3>
                 {% if current_salary %}
-                    <p class="text-3xl font-bold">₹{{ current_salary.salary|floatformat:2 }}</p>
-                    <p class="text-sm opacity-75 mt-1">Monthly Basic</p>
+                <p class="text-3xl font-bold">₹{{ current_salary.salary|floatformat:2 }}</p>
+                <p class="text-sm opacity-75 mt-1">Monthly Basic</p>
                 {% else %}
-                    <p class="text-xl">Not Set</p>
+                <p class="text-xl">Not Set</p>
                 {% endif %}
             </div>
 
@@ -110,10 +110,10 @@
             <div class="info-card p-6 text-white">
                 <h3 class="text-lg font-semibold mb-2">PF Deduction</h3>
                 {% if current_salary and current_salary.pf_percentage %}
-                    <p class="text-3xl font-bold">₹{{ current_salary.pf_amount|floatformat:2 }}</p>
-                    <p class="text-sm opacity-75 mt-1">Rate: {{ current_salary.pf_percentage }}%</p>
+                <p class="text-3xl font-bold">₹{{ current_salary.pf_amount|floatformat:2 }}</p>
+                <p class="text-sm opacity-75 mt-1">Rate: {{ current_salary.pf_percentage }}%</p>
                 {% else %}
-                    <p class="text-xl">No PF</p>
+                <p class="text-xl">No PF</p>
                 {% endif %}
             </div>
 
@@ -121,10 +121,10 @@
             <div class="info-card p-6 text-white">
                 <h3 class="text-lg font-semibold mb-2">ESI Deduction</h3>
                 {% if current_salary and current_salary.esi_percentage %}
-                    <p class="text-3xl font-bold">₹{{ current_salary.esi_amount|floatformat:2 }}</p>
-                    <p class="text-sm opacity-75 mt-1">Rate: {{ current_salary.esi_percentage }}%</p>
+                <p class="text-3xl font-bold">₹{{ current_salary.esi_amount|floatformat:2 }}</p>
+                <p class="text-sm opacity-75 mt-1">Rate: {{ current_salary.esi_percentage }}%</p>
                 {% else %}
-                    <p class="text-xl">No ESI</p>
+                <p class="text-xl">No ESI</p>
                 {% endif %}
             </div>
 
@@ -132,10 +132,10 @@
             <div class="info-card p-6 text-white">
                 <h3 class="text-lg font-semibold mb-2">Net Salary</h3>
                 {% if current_salary %}
-                    <p class="text-3xl font-bold">₹{{ current_salary.net_salary|floatformat:2 }}</p>
-                    <p class="text-sm opacity-75 mt-1">After Deductions</p>
+                <p class="text-3xl font-bold">₹{{ current_salary.net_salary|floatformat:2 }}</p>
+                <p class="text-sm opacity-75 mt-1">After Deductions</p>
                 {% else %}
-                    <p class="text-xl">Not Set</p>
+                <p class="text-xl">Not Set</p>
                 {% endif %}
             </div>
         </div>
@@ -147,19 +147,20 @@
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                 {% regroup month_leaves by leave_days|date:"Y-m-d" as leaves_by_date %}
                 {% for date_group in leaves_by_date %}
-                    <div class="leave-item bg-gray-50 p-4 rounded-lg hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 border border-gray-200">
-                        <div class="flex flex-col">
-                            <div class="text-sm font-semibold text-indigo-600">
-                                {{ date_group.list.0.leave_days|date:"l" }}
-                            </div>
-                            <div class="text-lg font-bold text-gray-800 mt-1">
-                                {{ date_group.list.0.leave_days|date:"d" }}
-                            </div>
-                            <div class="text-sm text-gray-600">
-                                {{ date_group.list.0.leave_days|date:"F" }}
-                            </div>
+                <div
+                    class="leave-item bg-gray-50 p-4 rounded-lg hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 border border-gray-200">
+                    <div class="flex flex-col">
+                        <div class="text-sm font-semibold text-indigo-600">
+                            {{ date_group.list.0.leave_days|date:"l" }}
+                        </div>
+                        <div class="text-lg font-bold text-gray-800 mt-1">
+                            {{ date_group.list.0.leave_days|date:"d" }}
+                        </div>
+                        <div class="text-sm text-gray-600">
+                            {{ date_group.list.0.leave_days|date:"F" }}
                         </div>
                     </div>
+                </div>
                 {% endfor %}
             </div>
         </div>
