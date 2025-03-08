@@ -36,6 +36,8 @@ urlpatterns = [
 
     path('logout/', views.LOgoutView, name='logout'),
 
+
+    # Manager urls
     path('assign/task/employee/', views.assign_task_to_employee, name='assign-task-employee'),
 
     path('manager/task/list/', views.Manager_assigned_task_list, name='manager-task-list'),
@@ -52,7 +54,7 @@ urlpatterns = [
 
 
 
-    # employee urls
+    # Employee urls
     path('employee/task/list/', views.Employee_task_list_view, name='employee-tasks'),
 
     path('employee/leave/', views.Employee_leave_view, name='employee-leave'),

@@ -55,7 +55,7 @@
 
             <!-- Current Salary Info -->
             {% if current_salary %}
-            <div class="salary-info mb-8 p-6 text-white">
+            <div class="salary-info mb-8 p-6 text-white" data-aos="fade-left">
                 <div class="flex justify-between items-center">
                     <div>
                         <p class="text-sm opacity-75">Current Monthly Salary</p>
@@ -70,7 +70,7 @@
             <!-- Salary Form -->
             <form method="post">
                 {% csrf_token %}
-                <div class="space-y-6">
+                <div class="space-y-6" data-aos="fade-right" data-aos-delay="200">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             {% if current_salary %}Update{% else %}Add{% endif %} Salary

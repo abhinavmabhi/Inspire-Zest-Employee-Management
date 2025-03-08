@@ -105,7 +105,7 @@ class Manager_add_salary_form(forms.ModelForm):
         model = SalaryCalendar
         fields = ["salary"]
         widgets = {
-            'salary': forms.NumberInput(attrs={'class': 'form-control'}),
+            'salary': forms.NumberInput(attrs={'class': 'form-control border border-black' }),
         }
 
 class Employee_leave_form(forms.ModelForm):

@@ -19,6 +19,7 @@
     .info-section:hover {
         transform: translateY(-5px);
         box-shadow: 0 12px 25px rgba(99, 102, 241, 0.3);
+        
     }
 
     .detail-item {
@@ -40,14 +41,14 @@
             <!-- Main Info Section -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <!-- Department Info -->
-                <div class="info-section p-6 text-white">
+                <div class="info-section p-6 text-white" data-aos="flip-down" data-aos-delay="900"> 
                     <h3 class="text-lg font-semibold mb-2">Department</h3>
                     <p class="text-3xl font-bold">{{ about.department }}</p>
                     <p class="text-sm opacity-75 mt-2">Employee since {{ about.joining_date|date:"M d, Y" }}</p>
                 </div>
 
                 <!-- Status Info -->
-                <div class="info-section p-6 text-white">
+                <div class="info-section p-6 text-white" data-aos="flip-up">
                     <h3 class="text-lg font-semibold mb-2">Account Status</h3>
                     <p class="text-3xl font-bold">
                         {% if about.is_verified %}Verified{% else %}Pending{% endif %}
@@ -57,36 +58,36 @@
             </div>
 
             <!-- Detailed Information -->
-            <div class="bg-white rounded-lg shadow-sm p-6">
+            <div class="bg-white rounded-lg shadow-sm p-6 border border-black" data-aos="flip-up" data-aos-delay="500" >
                 <h2 class="text-xl font-semibold text-gray-800 mb-4">Employee Details</h2>
                 
                 <div class="space-y-4">
                     <!-- Username -->
-                    <div class="detail-item p-4 rounded-lg">
+                    <div class="detail-item p-4 rounded-lg border">
                         <label class="text-sm font-medium text-gray-600">Username</label>
                         <p class="text-gray-800 font-medium mt-1">{{ about.username }}</p>
                     </div>
 
                     <!-- Email -->
-                    <div class="detail-item p-4 rounded-lg">
+                    <div class="detail-item p-4 rounded-lg border">
                         <label class="text-sm font-medium text-gray-600">Email Address</label>
                         <p class="text-gray-800 font-medium mt-1">{{ about.email }}</p>
                     </div>
 
                     <!-- Department -->
-                    <div class="detail-item p-4 rounded-lg">
+                    <div class="detail-item p-4 rounded-lg border">
                         <label class="text-sm font-medium text-gray-600">Department</label>
                         <p class="text-gray-800 font-medium mt-1">{{ about.department }}</p>
                     </div>
 
                     <!-- Joining Date -->
-                    <div class="detail-item p-4 rounded-lg">
+                    <div class="detail-item p-4 rounded-lg border">
                         <label class="text-sm font-medium text-gray-600">Joining Date</label>
                         <p class="text-gray-800 font-medium mt-1">{{ about.joining_date|date:"F d, Y" }}</p>
                     </div>
 
                     <!-- Account Status -->
-                    <div class="detail-item p-4 rounded-lg">
+                    <div class="detail-item p-4 rounded-lg border">
                         <label class="text-sm font-medium text-gray-600">Account Status</label>
                         <div class="flex items-center mt-1">
                             <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium

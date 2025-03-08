@@ -2,6 +2,19 @@
 {% load widget_tweaks %}
 
 {% block main_block %}
+<!-- Add AOS CSS and JS -->
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        AOS.init({
+            duration: 1000,
+            once: true,
+            offset: 50
+        });
+    });
+</script>
+
 <style>
     .leave-card {
         background: linear-gradient(145deg, #ffffff, #f0f0f0);
@@ -14,26 +27,29 @@
         background: linear-gradient(135deg, #6366f1, #8b5cf6);
         border-radius: 15px;
         transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
     }
 
     .summary-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 10px 25px rgba(99, 102, 241, 0.2);
+        box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
     }
 
     .leave-history-item {
         transition: all 0.3s ease;
+        border-left: 4px solid transparent;
     }
 
     .leave-history-item:hover {
         transform: translateX(5px);
+        border-left-color: #6366f1;
     }
 </style>
 
 <div class="container mx-auto px-4 mt-28">
     <div class="max-w-7xl mx-auto">
-        <!-- Header -->
-        <div class="text-center mb-8">
+        <!-- Header with Animation -->
+        <div class="text-center mb-8" data-aos="fade-down">
             <h1 class="text-3xl font-bold text-gray-800">Leave Management</h1>
             <p class="text-gray-600 mt-2">Track your leaves and salary deductions</p>
         </div>
@@ -42,75 +58,71 @@
             <!-- Left Section: Summary Cards -->
             <div class="lg:col-span-2">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <!-- Leave Count -->
-                    <div class="summary-card p-6 text-white">
+                    <!-- Summary Cards with Animations -->
+                    <div class="summary-card p-6 text-white" data-aos="fade-up" data-aos-delay="100">
                         <h3 class="text-lg font-semibold mb-2">Total Leaves</h3>
                         <p class="text-3xl font-bold">{{ month_leaves_count }}</p>
                         <p class="text-sm opacity-75 mt-1">Leaves in {{ current_month }}</p>
                     </div>
 
-                    <!-- Current Salary -->
-                    <div class="summary-card p-6 text-white">
+                    <div class="summary-card p-6 text-white" data-aos="fade-up" data-aos-delay="200">
                         <h3 class="text-lg font-semibold mb-2">Current Salary</h3>
                         <p class="text-3xl font-bold">₹{{ current_salary.salary|floatformat:2 }}</p>
                         <p class="text-sm opacity-75 mt-1">Monthly salary</p>
                     </div>
 
-                    <!-- Salary After Deduction -->
-                    <div class="summary-card p-6 text-white">
+                    <div class="summary-card p-6 text-white" data-aos="fade-up" data-aos-delay="300">
                         <h3 class="text-lg font-semibold mb-2">After Deduction</h3>
                         <p class="text-3xl font-bold">₹{{ salary_after_deduction|floatformat:2 }}</p>
                         <p class="text-sm opacity-75 mt-1">Deducted: ₹{{ total_deduction|floatformat:2 }}</p>
                     </div>
                 </div>
 
-                <!-- Leave Request Form -->
-                <div class="leave-card p-8 mb-8">
+                <!-- Leave Request Form with Animation -->
+                <div class="leave-card p-8 mb-8" data-aos="fade-up" data-aos-delay="400">
                     <h2 class="text-xl font-semibold text-gray-800 mb-6">Submit Leave Request</h2>
 
                     {% if messages %}
                     <div class="mb-6">
                         {% for message in messages %}
-                        <div class="p-4 rounded-lg mb-4 
-                            {% if message.tags == 'success' %}bg-green-100 text-green-700
-                            {% elif message.tags == 'error' %}bg-red-100 text-red-700
-                            {% elif message.tags == 'warning' %}bg-yellow-100 text-yellow-700
-                            {% else %}bg-blue-100 text-blue-700{% endif %}">
+                        <div class="p-4 rounded-lg mb-4" data-aos="fade-right" data-aos-delay="100"
+                            {% if message.tags == 'success' %}class="bg-green-100 text-green-700"
+                            {% elif message.tags == 'error' %}class="bg-red-100 text-red-700"
+                            {% elif message.tags == 'warning' %}class="bg-yellow-100 text-yellow-700"
+                            {% else %}class="bg-blue-100 text-blue-700"{% endif %}>
                             {{ message }}
                         </div>
                         {% endfor %}
                     </div>
                     {% endif %}
 
-                    <form method="post">
+                    <form method="post" class="space-y-6">
                         {% csrf_token %}
-                        <div class="space-y-6">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Select Leave Date</label>
-                                {{ form.leave_days|add_class:"w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" }}
-                            </div>
-
-                            <div class="bg-blue-50 p-4 rounded-lg">
-                                <h4 class="font-semibold text-blue-800 mb-2">Leave Policy:</h4>
-                                <ul class="list-disc list-inside space-y-1 text-sm text-blue-700">
-                                    <li>First leave of the month is free</li>
-                                    <li>Additional leaves will result in salary deduction</li>
-                                    <li>Per day deduction = Monthly salary ÷ 30</li>
-                                </ul>
-                            </div>
-
-                            <button type="submit" 
-                                class="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors duration-200 font-medium">
-                                Submit Leave Request
-                            </button>
+                        <div data-aos="fade-up" data-aos-delay="200">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Select Leave Date</label>
+                            {{ form.leave_days|add_class:"w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" }}
                         </div>
+
+                        <div class="bg-blue-50 p-4 rounded-lg" data-aos="fade-up" data-aos-delay="300">
+                            <h4 class="font-semibold text-blue-800 mb-2">Leave Policy:</h4>
+                            <ul class="list-disc list-inside space-y-1 text-sm text-blue-700">
+                                <li>First leave of the month is free</li>
+                                <li>Additional leaves will result in salary deduction</li>
+                                <li>Per day deduction = Monthly salary ÷ 30</li>
+                            </ul>
+                        </div>
+
+                        <button type="submit" data-aos="fade-up" data-aos-delay="400"
+                            class="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg hover:bg-indigo-700 transition-all duration-300 font-medium hover:scale-[1.02]">
+                            Submit Leave Request
+                        </button>
                     </form>
                 </div>
             </div>
 
             <!-- Right Section: Leave History -->
             <div class="lg:col-span-1">
-                <div class="leave-card p-6">
+                <div class="leave-card p-6" data-aos="fade-left" data-aos-delay="500">
                     <h2 class="text-xl font-semibold text-gray-800 mb-6">Leave History</h2>
 
                     {% if upcoming_leaves %}
@@ -118,7 +130,8 @@
                         <h3 class="text-sm font-medium text-gray-500 mb-4">UPCOMING LEAVES</h3>
                         <div class="space-y-3">
                             {% for leave in upcoming_leaves %}
-                            <div class="leave-history-item bg-blue-50 p-4 rounded-lg">
+                            <div class="leave-history-item bg-blue-50 p-4 rounded-lg" 
+                                 data-aos="fade-left" data-aos-delay="{{ forloop.counter0 }}00">
                                 <p class="font-medium text-blue-800">{{ leave.leave_days|date:"D, M d, Y" }}</p>
                                 <p class="text-sm text-blue-600 mt-1">Upcoming</p>
                             </div>
@@ -132,9 +145,10 @@
                         <h3 class="text-sm font-medium text-gray-500 mb-4">PAST LEAVES</h3>
                         <div class="space-y-3">
                             {% for leave in past_leaves %}
-                            <div class="leave-history-item bg-gray-50 p-4 rounded-lg">
+                            <div class="leave-history-item bg-gray-50 p-4 rounded-lg" 
+                                 data-aos="fade-left" data-aos-delay="{{ forloop.counter0 }}00">
                                 <p class="font-medium text-gray-800">{{ leave.leave_days|date:"D, M d, Y" }}</p>
-                                <p class="text-sm text-gray-600 mt-1">Not Taken</p>
+                                <p class="text-sm text-gray-600 mt-1">Taken</p>
                             </div>
                             {% endfor %}
                         </div>
@@ -142,7 +156,7 @@
                     {% endif %}
 
                     {% if not past_leaves and not upcoming_leaves %}
-                    <div class="text-center py-8">
+                    <div class="text-center py-8" data-aos="fade-up">
                         <p class="text-gray-500">No leave history found</p>
                     </div>
                     {% endif %}
