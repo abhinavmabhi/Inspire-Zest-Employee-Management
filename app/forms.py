@@ -32,12 +32,20 @@ class SignupForm(UserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Remove help texts and customize password fields
+        # Remove all help texts
+        self.fields['username'].help_text = None
         self.fields['password1'].help_text = None
         self.fields['password2'].help_text = None
+        
+        # Customize widgets
         self.fields['email'].widget = forms.EmailInput(attrs={
             'class': 'form-control',
             'placeholder': 'Enter email'
+        })
+        
+        self.fields['username'].widget = forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter username'
         })
         
         self.fields['password1'].widget = forms.PasswordInput(attrs={
