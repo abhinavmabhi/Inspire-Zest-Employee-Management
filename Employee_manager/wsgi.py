@@ -8,9 +8,10 @@ https://docs.djangoproject.com/en/5.1/howto/deployment/wsgi/
 """
 
 import os
-
 from django.core.wsgi import get_wsgi_application
+from whitenoise import WhiteNoise  # Note the correct case
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Employee_manager.settings')
 
 application = get_wsgi_application()
+application = WhiteNoise(application)
