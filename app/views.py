@@ -444,142 +444,125 @@ def Employee_task_list_view(request):
     return render(request, 'Employee_task_list.html', {'tasks': tasks})
 
 
-
 def Employee_leave_view(request):
-    if request.method == 'POST':
-        form = Employee_leave_form(request.POST)
-        if form.is_valid():
-            leave_date = form.cleaned_data['leave_days']
-            leave_type = form.cleaned_data['leave_type']
-            
-            try:
-                # Validate leave date
-                current_date = timezone.now().date()
-                if leave_date < current_date:
-                    raise ValidationError("Cannot apply leave for past dates")
-                if leave_date.weekday() >= 5:
-                    raise ValidationError("Cannot apply leave for weekends")
-                if (leave_date - current_date).days > 30:
-                    raise ValidationError("Cannot apply leave more than 30 days in advance")
-                
-                with transaction.atomic():
-                    # Get salary record with lock
-                    salary_record = SalaryCalendar.objects.filter(
-                        employee=request.user
-                    ).select_for_update().last()
-                    
-                    if not salary_record:
-                        raise ValidationError("No salary record found. Please contact your manager.")
-                    
-                    # Check existing leave
-                    if SalaryCalendar.objects.filter(
-                        employee=request.user,
-                        leave_days=leave_date
-                    ).exists():
-                        raise ValidationError("Leave already exists for this date")
-                    
-                    # Calculate leave count for current month
-                    month_leaves = SalaryCalendar.objects.filter(
-                        employee=request.user,
-                        leave_days__month=leave_date.month,
-                        leave_days__year=leave_date.year
-                    )
-                    
-                    # Calculate total leave count considering half days
-                    leave_count = sum(
-                        1 if leave.leave_type == 'full' else 0.5 
-                        for leave in month_leaves
-                    )
-                    
-                    # Convert salary to Decimal for accurate calculations
-                    original_salary = Decimal(str(salary_record.salary))
-                    per_day_salary = original_salary / Decimal('30.0')
-                    
-                    # Calculate deduction based on leave type and count
-                    if leave_count >= 1:
-                        deduction = per_day_salary if leave_type == 'full' else per_day_salary / Decimal('2.0')
-                        new_salary = original_salary - deduction
-                        
-                        leave_type_text = "full day" if leave_type == 'full' else "half day"
-                        messages.warning(
-                            request,
-                            f"This is your {leave_count + (0.5 if leave_type == 'half' else 1)}th leave. "
-                            f"{leave_type_text.title()} deduction: ₹{deduction:.2f}"
-                        )
-                    else:
-                        new_salary = original_salary
-                        messages.info(request, "First leave of the month - No salary deduction")
-                    
-                    # Save leave record
-                    leave = form.save(commit=False)
-                    leave.employee = request.user
-                    leave.salary = float(new_salary)  # Convert back to float for storage
-                    leave.save()
-                    
-                    messages.success(
-                        request,
-                        f"Leave request submitted for {leave_date} ({leave.get_leave_type_display()})"
-                    )
-                    
-            except ValidationError as e:
-                messages.error(request, str(e))
-            except Exception as e:
-                messages.error(request, f"Error processing leave request: {str(e)}")
-            
-            return redirect('employee-leave')
-    else:
-        form = Employee_leave_form()
-    
-    # Get all leave records
-    all_leaves = SalaryCalendar.objects.filter(
-        employee=request.user
-    ).order_by('-leave_days')
-    
-    current_date = timezone.now().date()
-    
-    # Get current month's leaves
-    current_month_leaves = all_leaves.filter(
-        leave_days__month=current_date.month,
-        leave_days__year=current_date.year
-    )
-    
-    # Get current salary info
-    current_salary = SalaryCalendar.objects.filter(employee=request.user).last()
-    total_deduction = Decimal('0.0')
-    salary_after_deduction = Decimal('0.0')
-    
-    if current_salary:
-        # Convert salary to Decimal
-        base_salary = Decimal(str(current_salary.salary))
+    try:
+        current_date = timezone.now().date()
         
-        # Calculate leave counts
-        full_day_count = sum(1 for leave in current_month_leaves if leave.leave_type == 'full')
-        half_day_count = sum(1 for leave in current_month_leaves if leave.leave_type == 'half')
-        total_leave_count = full_day_count + (half_day_count * Decimal('0.5'))
+        # Get base salary record (without leaves)
+        base_salary_record = SalaryCalendar.objects.filter(
+            employee=request.user,
+            leave_days__isnull=True
+        ).last()
         
-        # Calculate deductions if leaves exceed one
-        if total_leave_count > 1:
+        # Get all leave records
+        all_leaves = SalaryCalendar.objects.filter(
+            employee=request.user
+        ).order_by('-leave_days')
+        
+        # Get current month's leaves
+        current_month_leaves = all_leaves.filter(
+            leave_days__month=current_date.month,
+            leave_days__year=current_date.year,
+            leave_days__isnull=False
+        )
+        
+        # Initialize variables
+        total_leave_count = Decimal('0.0')
+        full_day_count = 0
+        half_day_count = 0
+        base_salary = Decimal('0.0')
+        net_salary = Decimal('0.0')
+        leave_deduction = Decimal('0.0')
+        
+        if base_salary_record:
+            # Calculate leave counts
+            full_day_count = sum(1 for leave in current_month_leaves if leave.leave_type == 'full')
+            half_day_count = sum(1 for leave in current_month_leaves if leave.leave_type == 'half')
+            total_leave_count = full_day_count + (half_day_count * Decimal('0.5'))
+            
+            # Calculate salary and deductions
+            base_salary = Decimal(str(base_salary_record.salary))
             per_day_salary = base_salary / Decimal('30.0')
-            excess_leaves = total_leave_count - 1
-            total_deduction = (per_day_salary * excess_leaves)
-            salary_after_deduction = base_salary - total_deduction
+            
+            # Calculate leave deduction (first leave is free)
+            if total_leave_count > 1:
+                excess_leaves = total_leave_count - 1
+                leave_deduction = per_day_salary * excess_leaves
+                net_salary = base_salary - leave_deduction
+            else:
+                net_salary = base_salary
+        
+        # Handle form submission
+        if request.method == 'POST':
+            form = Employee_leave_form(request.POST)
+            if form.is_valid():
+                leave_date = form.cleaned_data['leave_days']
+                leave_type = form.cleaned_data['leave_type']
+                
+                try:
+                    # Validate leave date
+                    if leave_date < current_date:
+                        raise ValidationError("Cannot apply leave for past dates")
+                    if leave_date.weekday() >= 5:
+                        raise ValidationError("Cannot apply leave for weekends")
+                    if (leave_date - current_date).days > 30:
+                        raise ValidationError("Cannot apply leave more than 30 days in advance")
+                    
+                    with transaction.atomic():
+                        # Check existing leave
+                        if SalaryCalendar.objects.filter(
+                            employee=request.user,
+                            leave_days=leave_date
+                        ).exists():
+                            raise ValidationError("Leave already exists for this date")
+                        
+                        # Save leave record
+                        leave = form.save(commit=False)
+                        leave.employee = request.user
+                        leave.salary = float(net_salary)
+                        leave.save()
+                        
+                        messages.success(
+                            request,
+                            f"Leave request submitted for {leave_date} ({leave.get_leave_type_display()})"
+                        )
+                        
+                except ValidationError as e:
+                    messages.error(request, str(e))
+                except Exception as e:
+                    messages.error(request, f"Error processing leave request: {str(e)}")
+                
+                return redirect('employee-leave')
         else:
-            salary_after_deduction = base_salary
-    
-    context = {
-        'form': form,
-        'past_leaves': all_leaves.filter(leave_days__lt=current_date),
-        'upcoming_leaves': all_leaves.filter(leave_days__gte=current_date),
-        'month_leaves_count': total_leave_count if current_salary else 0,
-        'current_month': current_date.strftime('%B'),
-        'current_salary': current_salary,
-        'total_deduction': total_deduction,
-        'salary_after_deduction': salary_after_deduction,
-        'full_day_count': full_day_count if current_salary else 0,
-        'half_day_count': half_day_count if current_salary else 0
-    }
-    
-    return render(request, 'Employee_leave.html', context)
+            form = Employee_leave_form()
+        
+        context = {
+            'form': form,
+            'employee': request.user,
+            'base_salary': base_salary_record,
+            'current_salary': net_salary,
+            'month_leaves_count': total_leave_count,
+            'current_month': current_date.strftime('%B'),
+            'month_leaves': current_month_leaves,
+            'past_leaves': all_leaves.filter(leave_days__lt=current_date),
+            'upcoming_leaves': all_leaves.filter(leave_days__gte=current_date),
+            'deductions': {
+                'pf': base_salary_record.pf_amount if base_salary_record else 0,
+                'esi': base_salary_record.esi_amount if base_salary_record else 0,
+                'leave': leave_deduction,
+                'total': (leave_deduction + 
+                         (base_salary_record.pf_amount if base_salary_record else 0) + 
+                         (base_salary_record.esi_amount if base_salary_record else 0))
+            },
+            'full_day_count': full_day_count,
+            'half_day_count': half_day_count
+        }
+        
+        return render(request, 'Employee_leave.html', context)
+        
+    except Exception as e:
+        messages.error(request, f"Error retrieving leave details: {str(e)}")
+        return redirect('employee-dashboard')
 
 
 

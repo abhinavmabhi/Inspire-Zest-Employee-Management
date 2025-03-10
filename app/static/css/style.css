@@ -322,6 +322,26 @@
 
 /* employee leave  */
 
+.info-card {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-radius: 15px;
+    transition: all 0.3s ease;
+}
+
+.info-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+}
+
+.leave-history-item {
+    transition: all 0.3s ease;
+}
+
+.leave-history-item:hover {
+    transform: translateX(5px);
+}
+/* ----------------- */
+
 .leave-card {
     background: linear-gradient(145deg, #ffffff, #f0f0f0);
     border-radius: 20px;

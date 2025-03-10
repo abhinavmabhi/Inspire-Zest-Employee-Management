@@ -69,59 +69,64 @@
 
     <!-- Reports Grid -->
     {% if qs %}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {% for report in qs %}
-        <div class="report-card" data-aos="fade-up" data-aos-delay="{{ forloop.counter|add:100 }}">
-            <!-- Card Header -->
-            <div class="report-header border border-black">
-                <div class="flex items-start justify-between mb-2">
-                    <h3 class="text-sm font-semibold text-white truncate">{{ report.employee.username }}</h3>
-                    <span class="department-badge px-2 py-0.5 rounded-full text-xs font-medium text-white">
-                        {{ report.employee.get_department_display }}
-                    </span>
-                </div>
-                <div class="flex items-center text-white/80 text-xs">
-                    <i class="fas fa-calendar-alt mr-1.5"></i>
-                    <span>{{ report.report_date|date:"M d, Y" }}</span>
-                </div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    {% for report in qs %}
+    <div class="report-card bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl hover:transform hover:-translate-y-1" 
+         data-aos="fade-up" data-aos-delay="{{ forloop.counter|add:100 }}">
+        <!-- Card Header -->
+        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-4">
+            <div class="flex items-start justify-between mb-2">
+                <h3 class="text-sm font-semibold text-white truncate">{{ report.employee.username }}</h3>
+                <span class="px-2 py-1 rounded-full text-xs font-medium bg-white/20 text-white backdrop-blur-sm">
+                    {{ report.employee.get_department_display }}
+                </span>
             </div>
-
-            <!-- Card Content -->
-            <div class="report-content border border-black">
-                <div class="space-y-3">
-                    <div>
-                        <h4 class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Client</h4>
-                        <p class="text-sm text-gray-900">{{ report.client_name }}</p>
-                    </div>
-                    <div>
-                        <h4 class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Daily Update</h4>
-                        <p class="text-sm text-gray-700 line-clamp-3">{{ report.todays_update }}</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Card Footer -->
-            <div class="report-footer border border-black">
-                <div class="flex justify-between items-center">
-                    <div class="flex items-center gap-1.5 text-xs text-gray-600">
-                        <i class="fas fa-id-badge text-indigo-500"></i>
-                        <span>{{ report.employee.employee_id }}</span>
-                    </div>
-                    <button class="text-indigo-600 hover:text-indigo-800 transition-colors duration-200">
-                        <i class="fas fa-chevron-right text-xs"></i>
-                    </button>
-                </div>
+            <div class="flex items-center text-white/80 text-xs">
+                <i class="fas fa-calendar-alt mr-2"></i>
+                <span>{{ report.report_date|date:"M d, Y" }}</span>
             </div>
         </div>
-        {% endfor %}
+
+        <!-- Card Content -->
+        <div class="p-4 space-y-4">
+            <div class="space-y-2">
+                <div class="flex items-center">
+                    <i class="fas fa-user-tie text-indigo-500 mr-2"></i>
+                    <h4 class="text-xs font-medium text-gray-500 uppercase tracking-wider">Client</h4>
+                </div>
+                <p class="text-sm text-gray-900 font-medium pl-6">{{ report.client_name }}</p>
+            </div>
+            <div class="space-y-2">
+                <div class="flex items-center">
+                    <i class="fas fa-tasks text-indigo-500 mr-2"></i>
+                    <h4 class="text-xs font-medium text-gray-500 uppercase tracking-wider">Daily Update</h4>
+                </div>
+                <p class="text-sm text-gray-700 pl-6 line-clamp-3">{{ report.todays_update }}</p>
+            </div>
+        </div>
+
+        <!-- Card Footer -->
+        <div class="px-4 py-3 bg-gray-50 border-t border-gray-100">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-id-badge text-indigo-500"></i>
+                    <span class="text-xs text-gray-600 font-medium">ID: {{ report.employee.employee_id }}</span>
+                </div>
+                
+            </div>
+        </div>
     </div>
-    {% else %}
-    <!-- Empty State -->
-    <div class="text-center py-8 bg-white rounded-lg shadow-sm" data-aos="fade-up">
-        <i class="fas fa-clipboard-list text-3xl text-gray-400 mb-2"></i>
-        <h3 class="text-sm font-medium text-gray-900">No Reports Found</h3>
-        <p class="text-xs text-gray-500 mt-1">Try adjusting your filters or select a different date</p>
+    {% endfor %}
+</div>
+{% else %}
+<!-- Empty State -->
+<div class="text-center py-12 bg-white rounded-lg shadow-sm" data-aos="fade-up">
+    <div class="bg-gray-50 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+        <i class="fas fa-clipboard-list text-3xl text-gray-400"></i>
     </div>
-    {% endif %}
+    <h3 class="text-lg font-medium text-gray-900">No Reports Found</h3>
+    <p class="text-sm text-gray-500 mt-2">Try adjusting your filters or select a different date</p>
+</div>
+{% endif %}
 </div>
 {% endblock %}
