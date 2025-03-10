@@ -138,23 +138,29 @@ class Manager_add_salary_form(forms.ModelForm):
 
         return cleaned_data
 
+
 class Employee_leave_form(forms.ModelForm):
     class Meta:
         model = SalaryCalendar
-        fields = ["leave_days"]
+        fields = ["leave_days", "leave_type"]
         widgets = {
             'leave_days': forms.DateInput(attrs={
                 'type': 'date',
                 'class': 'form-control',
-                'min': timezone.now().date().isoformat(),  # Set minimum date to today
+                'min': timezone.now().date().isoformat(),
+            }),
+            'leave_type': forms.Select(attrs={
+                'class': 'form-control',
             })
         }
-    
+
     def clean_leave_days(self):
         leave_date = self.cleaned_data.get('leave_days')
         if leave_date and leave_date < timezone.now().date():
             raise forms.ValidationError("Cannot select a past date")
         return leave_date
+    
+
     
 class Daily_report_form(forms.ModelForm):
     class Meta:

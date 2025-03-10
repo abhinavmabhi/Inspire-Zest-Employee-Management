@@ -1,74 +1,10 @@
 {% extends 'admin_base.html' %}
 {% load widget_tweaks %}
+{%load static%}
 {% block main_block %}
-<style>
-    .page-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 220px;
-        margin-bottom: 5rem;
-        border-radius: 0 0 10rem 10rem;
-        text-align: center;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        padding: 2rem;
-        gap: 1rem;
-    }
 
-    .form-container {
-        background: white;
-        border-radius: 20px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
-    }
 
-    .form-container::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(163deg, #c800cc 0%, #3700ff 100%);
-        opacity: 0;
-        transition: opacity 0.3s;
-    }
-
-    .form-container:hover::before {
-        opacity: 0.05;
-    }
-
-    .form-content {
-        position: relative;
-        z-index: 1;
-    }
-
-    .input-group {
-        position: relative;
-        margin-bottom: 1.5rem;
-    }
-
-    .input-group label {
-        position: absolute;
-        left: 1rem;
-        top: -0.5rem;
-        padding: 0 0.5rem;
-        background: white;
-        color: #4b5563;
-        font-size: 0.875rem;
-        transition: all 0.2s;
-    }
-
-    .input-group input:focus + label,
-    .input-group textarea:focus + label,
-    .input-group select:focus + label {
-        color: #3b82f6;
-        transform: translateY(-0.1rem);
-    }
-</style>
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
 
 <div class="min-h-screen bg-gray-50 pb-12">
     <!-- Header -->

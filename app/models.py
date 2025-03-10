@@ -65,7 +65,7 @@ class DailyReport(models.Model):
 
 class SalaryCalendar(models.Model):
     employee = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    leave_days = models.DateField(default=timezone.now)
+    leave_days = models.DateField(null=True, blank=True)  # Make it nullable
     salary = models.FloatField()
     pf_percentage = models.DecimalField(
         max_digits=5, 
@@ -79,8 +79,33 @@ class SalaryCalendar(models.Model):
         null=True, 
         blank=True,
     )
-    created_at = models.DateTimeField(auto_now_add=True,null=True,blank=True) 
+    leave_type = models.CharField(
+        max_length=4,
+        choices=[('full', 'Full Day'), ('half', 'Half Day')],
+        null=True,
+        blank=True
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    @property
+    def per_day_salary(self):
+        """Calculate per day salary"""
+        return Decimal(str(self.salary)) / Decimal('30.0')
 
+    @property
+    def deduction_amount(self):
+        """Calculate leave deduction amount based on leave type"""
+        if self.leave_type == 'half':
+            return self.per_day_salary / Decimal('2.0')
+        return self.per_day_salary
+
+    @property
+    def net_salary(self):
+        """Calculate net salary after all deductions"""
+        return Decimal(str(self.salary)) - self.total_deductions
+
+    def __str__(self):
+        return f'Calendar for {self.employee.username}'
+    
     @property
     def pf_amount(self):
         """Calculate PF deduction if applicable"""
@@ -96,8 +121,13 @@ class SalaryCalendar(models.Model):
         return Decimal('0.0')
 
     @property
+    def per_day_salary(self):
+        """Calculate per day salary"""
+        return Decimal(str(self.salary)) / Decimal('30.0')
+
+    @property
     def total_deductions(self):
-        """Calculate total deductions"""
+        """Calculate total deductions including PF and ESI"""
         return self.pf_amount + self.esi_amount
 
     @property

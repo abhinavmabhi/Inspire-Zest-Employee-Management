@@ -1,33 +1,9 @@
 {% extends 'employee_base.html' %}
 {% load widget_tweaks %}
+{%load static%}
 
 {% block main_block %}
-<style>
-    .report-card {
-        background: linear-gradient(145deg, #ffffff, #d0d0d0);
-        border-radius: 20px;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-    }
-
-    .info-card {
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        border-radius: 15px;
-        transition: all 0.3s ease;
-    }
-
-    .info-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 25px rgba(99, 102, 241, 0.2);
-    }
-
-    .report-item {
-        transition: all 0.3s ease;
-    }
-
-    .report-item:hover {
-        transform: translateX(5px);
-    }
-</style>
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
 
 <div class="container mx-auto px-4 mt-28">
     <div class="max-w-4xl mx-auto">
