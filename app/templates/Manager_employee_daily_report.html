@@ -38,7 +38,6 @@
                         value="{{ selected_date }}"
                         max="{{ today|date:'Y-m-d' }}"
                         class="filter-input w-full pl-8">
-                    <i class="fas fa-calendar-alt absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                 </div>
             </div>
 
@@ -54,14 +53,12 @@
                         </option>
                         {% endfor %}
                     </select>
-                    <i class="fas fa-user absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
                     <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
                 </div>
             </div>
 
             <!-- Filter Button -->
             <button type="submit" class="filter-button whitespace-nowrap">
-                <i class="fas fa-filter text-xs"></i>
                 <span>Filter</span>
             </button>
         </form>
@@ -82,7 +79,6 @@
                 </span>
             </div>
             <div class="flex items-center text-white/80 text-xs">
-                <i class="fas fa-calendar-alt mr-2"></i>
                 <span>{{ report.report_date|date:"M d, Y" }}</span>
             </div>
         </div>
