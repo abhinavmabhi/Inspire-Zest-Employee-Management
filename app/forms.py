@@ -97,10 +97,10 @@ class Manager_Task_Assign_To_Employee_form(forms.ModelForm):
         model = Task
         fields = ["employee", "client_name", "time_line", "description"]
         widgets = {
-            'time_line': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            "description": forms.Textarea(attrs={'class': 'form-control', 'rows': 3,"style":"resize:none"}),
-            'employee': forms.Select(attrs={'class': 'form-select'}),
-            'client_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'time_line': forms.DateInput(attrs={'type': 'date', 'class': 'form-control' ,'placeholder':'Enter deadline'}),
+            "description": forms.Textarea(attrs={'class': 'form-control', 'rows': 3,"style":"resize:none",'placehoder':'Enter task description'}),
+            'employee': forms.Select(attrs={'class': 'form-select','palceholder':'Select employee'}),
+            'client_name': forms.TextInput(attrs={'class': 'form-control','placeholder':'Enter client name'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -175,8 +175,8 @@ class Daily_report_form(forms.ModelForm):
         model=DailyReport
         fields=["client_name","todays_update"]
         widgets={
-            'client_name':forms.TextInput(attrs={'class':'form-control'}),
-            'todays_update':forms.Textarea(attrs={'class':'form-control','rows':3,"style":"resize:none"})
+            'client_name':forms.TextInput(attrs={'class':'form-control border border-black','placeholder':'Enter client name'}),
+            'todays_update':forms.Textarea(attrs={'class':'form-control border border-black', "placeholder":"Enter today's update",'rows':3,"style":"resize:none"})
         }
 
 class Employee_update_form(forms.ModelForm):

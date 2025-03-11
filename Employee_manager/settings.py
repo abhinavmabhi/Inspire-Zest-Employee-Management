@@ -89,6 +89,20 @@ DATABASES = {
     }
 }
 
+# import os
+# from pathlib import Path
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'djongo',
+#         'NAME': 'employee_manager_db',
+#         'CLIENT': {
+#             'host': 'mongodb+srv://abhinavabhi192018:abhinavabhi@cluster0.lsvm7.mongodb.net/',
+#             'name': 'employee_manager_db',
+#             'authMechanism': 'SCRAM-SHA-1'
+#         }
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators

@@ -15,20 +15,22 @@
     <div class="container mx-auto px-5">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {% for t in tasks %}
+            
             <div class="task-card border border-black" data-aos="fade-up">
                 <div class="task-content">
+                    <span class="status-indicator status-{{ t.status|lower }}">
+                        <i class="fas {% if t.status == 'not_accepted' %}fa-exclamation-circle
+                                  {% elif t.status == 'accepted' %}fa-spinner fa-spin
+                                  {% else %}fa-check-circle{% endif %}"></i>
+                        {{ t.status|title }}
+                    </span>
                     <!-- Employee and Status -->
                     <div class="flex justify-between items-center mb-4">
                         <h5 class="text-lg font-semibold">
                             <i class="fas fa-user mr-2 text-indigo-500"></i>
                             {{ t.employee.username }}
                         </h5>
-                        <span class="status-indicator status-{{ t.status|lower }}">
-                            <i class="fas {% if t.status == 'not_accepted' %}fa-exclamation-circle
-                                      {% elif t.status == 'accepted' %}fa-spinner fa-spin
-                                      {% else %}fa-check-circle{% endif %}"></i>
-                            {{ t.status|title }}
-                        </span>
+                        
                     </div>
 
                     <!-- Client Name -->
